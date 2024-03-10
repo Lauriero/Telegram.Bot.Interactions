@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-using Telegram.Bot.Interactions.Model.Responses.Descriptors;
-
 namespace Telegram.Bot.Interactions.Model.Responses.Abstraction;
 
 /// <summary>
@@ -11,7 +9,7 @@ namespace Telegram.Bot.Interactions.Model.Responses.Abstraction;
 /// <typeparam name="TResponse">
 /// The response type data this response model represents.
 /// </typeparam>
-public interface IInteractionResponseModel<out TResponse>
+public interface IResponseModel<out TResponse>
     where TResponse : IUserResponse
 {
     /// <summary>
@@ -32,12 +30,7 @@ public interface IInteractionResponseModel<out TResponse>
     /// Not set if the user hasn't responded.
     /// </summary>
     public bool? Valid { get; }
- 
-    /// <summary>
-    /// General type of the response.
-    /// </summary>
-    public InteractionResponseType Type { get; }
-    
+
     /// <summary>
     /// Set if the user has responded to an interaction
     /// and contains data about his response in this case.
@@ -45,7 +38,7 @@ public interface IInteractionResponseModel<out TResponse>
     public TResponse? Response { get; }
     
     /// <summary>
-    /// Configs the response.
+    /// TODO: Add summary
     /// </summary>
-    public IInteractionResponseConfig<TResponse>? Config { get; }
+    public Type ResponseParserType { get; }
 }

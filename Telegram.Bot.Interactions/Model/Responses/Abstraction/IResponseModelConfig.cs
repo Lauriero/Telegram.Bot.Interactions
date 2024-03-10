@@ -3,5 +3,5 @@
 /// <summary>
 /// Configs the interaction response dependent on the factory.
 /// </summary>
-public interface IInteractionResponseConfig<out TResponse>
+public interface IResponseModelConfig<out TResponse>
     where TResponse : IUserResponse { }

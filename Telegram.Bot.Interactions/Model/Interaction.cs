@@ -22,12 +22,12 @@ public class Interaction
     /// <summary>
     /// List of the responses that user can give or gave to an interaction.
     /// </summary>
-    public IReadOnlyList<IInteractionResponseModel<IUserResponse>> AvailableResponses { get; }
+    public IReadOnlyList<IResponseModel<IUserResponse>> AvailableResponses { get; }
 
-    public Interaction(int id, List<IInteractionResponseModel<IUserResponse>> availableResponses)
+    public Interaction(int id, List<IResponseModel<IUserResponse>> availableResponses)
     {
         Id = id;
         AvailableResponses = 
-            new ReadOnlyCollection<IInteractionResponseModel<IUserResponse>>(availableResponses);
+            new ReadOnlyCollection<IResponseModel<IUserResponse>>(availableResponses);
     }
 }

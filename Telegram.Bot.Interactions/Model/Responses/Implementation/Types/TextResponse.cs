@@ -7,10 +7,5 @@ public class TextResponse : IUserResponse
     /// <summary>
     /// Text from the user message - <see cref="Message.Text"/>.
     /// </summary>
-    public string Text { get; }  
-    
-    public TextResponse(string text)
-    {
-        Text = text;
-    }
+    public string Text { get; } = null!;  
 }

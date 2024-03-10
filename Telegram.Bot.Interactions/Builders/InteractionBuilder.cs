@@ -1,4 +1,5 @@
-﻿using Telegram.Bot.Interactions.Model;
+﻿using Telegram.Bot.Interactions.Builders.InteractionResponses;
+using Telegram.Bot.Interactions.Model;
 using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 
 namespace Telegram.Bot.Interactions.Builders;
@@ -9,11 +10,11 @@ namespace Telegram.Bot.Interactions.Builders;
 public class InteractionBuilder
 {
     private int _id;
-    private readonly List<IInteractionResponseModel<IUserResponse>> _responses;
+    private readonly List<IResponseModel<IUserResponse>> _responses;
     private InteractionBuilder(int id)
     {
         _id = id;
-        _responses = new List<IInteractionResponseModel<IUserResponse>>();
+        _responses = new List<IResponseModel<IUserResponse>>();
     }
 
     /// <summary>
@@ -29,9 +30,20 @@ public class InteractionBuilder
     /// Adds the response for the built interaction.
     /// </summary>
     /// <param name="responseModel">Instance that describes the response.</param>
-    public InteractionBuilder WithResponse(IInteractionResponseModel<IUserResponse> responseModel)
+    public InteractionBuilder WithResponse(IResponseModel<IUserResponse> responseModel)
     {
         _responses.Add(responseModel);
+        return this;
+    }
+
+    /// <summary>
+    /// Builds and adds the response for the built interaction.
+    /// </summary>
+    /// <param name="responseBuilder">Instance of the response builder.</param>
+    public InteractionBuilder WithResponse(
+        IResponseModelBuilder<IUserResponse> responseBuilder)
+    {
+        _responses.Add(responseBuilder.Build());
         return this;
     }
 
