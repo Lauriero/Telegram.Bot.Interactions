@@ -1,19 +1,21 @@
-﻿using Telegram.Bot.Interactions.Services.Abstraction;
+﻿using Telegram.Bot.Interactions.InteractionHandlers;
 
 namespace Telegram.Bot.Interactions.Model.Descriptors;
 
-internal class InteractionModuleInfo
+public class InteractionModuleInfo
 {
-    public Type ModuleType;
-    public IServiceProvider ServiceProvider;
-    public IInteractionService InteractionService;
+    public Type ModuleType { get; }
+    public IServiceProvider ServiceProvider { get; }
+    public IInteractionService InteractionService { get; }
+    public IInteractionModule Instance { get; }
     public List<InteractionHandlerInfo> HandlerInfos { get; } = new();
-
+    
     public InteractionModuleInfo(Type moduleType, IInteractionService interactionService, 
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider, IInteractionModule instance)
     {
         ModuleType         = moduleType;
         ServiceProvider    = serviceProvider;
+        Instance      = instance;
         InteractionService = interactionService;
     }
 }

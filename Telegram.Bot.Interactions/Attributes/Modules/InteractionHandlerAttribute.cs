@@ -16,7 +16,8 @@ public class InteractionHandlerAttribute : Attribute
     public int InteractionId;
     public HandlerRunMode RunMode; 
     
-    public InteractionHandlerAttribute(int interactionId, HandlerRunMode runMode)
+    public InteractionHandlerAttribute(int interactionId, 
+        HandlerRunMode runMode = HandlerRunMode.Default)
     {
         InteractionId = interactionId;
         RunMode  = runMode;

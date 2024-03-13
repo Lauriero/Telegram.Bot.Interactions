@@ -13,8 +13,4 @@
       <PackageReference Include="Telegram.Bot" Version="19.0.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Exceptions\Modules\" />
-    </ItemGroup>
-
 </Project>

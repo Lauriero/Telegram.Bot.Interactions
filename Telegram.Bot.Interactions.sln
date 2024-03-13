@@ -2,6 +2,12 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telegram.Bot.Interactions", "Telegram.Bot.Interactions\Telegram.Bot.Interactions.csproj", "{C6B85269-83B3-40A0-8118-562E1BCFD767}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTest", "ConsoleTest\ConsoleTest.csproj", "{3EA5A98B-87E2-446F-AA0B-B209F6CFEC01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telegram.Bot.Interactions.Tests", "Telegram.Bot.Interactions.Tests\Telegram.Bot.Interactions.Tests.csproj", "{02992782-0EAA-4E88-8E70-BDE98DFC6302}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telegram.Bot.Interactions.Tests.Environment", "Telegram.Bot.Interactions.Tests.Environment\Telegram.Bot.Interactions.Tests.Environment.csproj", "{8AE3585F-7426-4BEF-AE26-2CCCD3A3FC9B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +18,17 @@ Global
 		{C6B85269-83B3-40A0-8118-562E1BCFD767}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6B85269-83B3-40A0-8118-562E1BCFD767}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6B85269-83B3-40A0-8118-562E1BCFD767}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EA5A98B-87E2-446F-AA0B-B209F6CFEC01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EA5A98B-87E2-446F-AA0B-B209F6CFEC01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EA5A98B-87E2-446F-AA0B-B209F6CFEC01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EA5A98B-87E2-446F-AA0B-B209F6CFEC01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02992782-0EAA-4E88-8E70-BDE98DFC6302}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02992782-0EAA-4E88-8E70-BDE98DFC6302}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02992782-0EAA-4E88-8E70-BDE98DFC6302}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02992782-0EAA-4E88-8E70-BDE98DFC6302}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AE3585F-7426-4BEF-AE26-2CCCD3A3FC9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AE3585F-7426-4BEF-AE26-2CCCD3A3FC9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AE3585F-7426-4BEF-AE26-2CCCD3A3FC9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AE3585F-7426-4BEF-AE26-2CCCD3A3FC9B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
