@@ -33,9 +33,9 @@ public interface ILoadedEntitiesRegistry
     /// </summary>
     IReadOnlyDictionary<Type, IReadOnlyList<ResponseValidatorInfo>> ResponseValidators { get; }
 
-    void RegisterLoadedInteraction(InteractionInfo interactionInfo);
+    void RegisterInteraction(InteractionInfo interactionInfo);
     
-    void RegisterLoadedInteractionModule(InteractionModuleInfo moduleInfo);
+    void RegisterInteractionModule(InteractionModuleInfo moduleInfo);
     
     void RegisterResponseParser(ResponseParserInfo parserInfo);
     

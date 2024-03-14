@@ -20,7 +20,7 @@ public class BasicInteractionModule : IInteractionModule
     public const string I2_KEY = "test_image_2";
     public const string I3_KEY = "test_text_3";
     
-    public IEnumerable<Interaction> DeclareInteractions()
+    public IEnumerable<IInteraction> DeclareInteractions()
     {
         return new[] {
             InteractionBuilder

@@ -4,16 +4,16 @@ namespace Telegram.Bot.Interactions.Model.Descriptors;
 
 public class InteractionModuleInfo
 {
-    public Type ModuleType { get; }
+    public Type Type { get; }
     public IServiceProvider ServiceProvider { get; }
     public IInteractionService InteractionService { get; }
     public IInteractionModule Instance { get; }
     public List<InteractionHandlerInfo> HandlerInfos { get; } = new();
     
-    public InteractionModuleInfo(Type moduleType, IInteractionService interactionService, 
+    public InteractionModuleInfo(Type type, IInteractionService interactionService, 
         IServiceProvider serviceProvider, IInteractionModule instance)
     {
-        ModuleType         = moduleType;
+        Type         = type;
         ServiceProvider    = serviceProvider;
         Instance      = instance;
         InteractionService = interactionService;

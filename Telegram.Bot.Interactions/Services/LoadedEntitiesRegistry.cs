@@ -38,7 +38,7 @@ public class LoadedEntitiesRegistry : ILoadedEntitiesRegistry
         ResponseValidators = new ReadOnlyDictionary<Type, IReadOnlyList<ResponseValidatorInfo>>(_responseValidators);
     }
 
-    public void RegisterLoadedInteraction(InteractionInfo interactionInfo)
+    public void RegisterInteraction(InteractionInfo interactionInfo)
     {
         if (!_interactions.TryAdd(interactionInfo.Interaction.Id, interactionInfo)) {
             throw new EntityRegistrationException<InteractionInfo>(interactionInfo,
@@ -46,11 +46,11 @@ public class LoadedEntitiesRegistry : ILoadedEntitiesRegistry
         }
     }
 
-    public void RegisterLoadedInteractionModule(InteractionModuleInfo moduleInfo)
+    public void RegisterInteractionModule(InteractionModuleInfo moduleInfo)
     {
-        if (!_interactionModules.TryAdd(moduleInfo.ModuleType, moduleInfo)) {
+        if (!_interactionModules.TryAdd(moduleInfo.Type, moduleInfo)) {
             throw new EntityRegistrationException<InteractionModuleInfo>(moduleInfo,
-                $"Info about the module {moduleInfo.ModuleType} is already presented " +
+                $"Info about the module {moduleInfo.Type} is already presented " +
                 "in the registry");
         }
     }

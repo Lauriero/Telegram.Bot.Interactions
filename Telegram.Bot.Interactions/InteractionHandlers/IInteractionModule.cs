@@ -8,5 +8,5 @@ public interface IInteractionModule
     /// This method serves to declare interactions that will be parsed automatically
     /// when this module is loaded into the <see cref="IInteractionService"/>.
     /// </summary>
-    public IEnumerable<Interaction> DeclareInteractions();
+    public IEnumerable<IInteraction> DeclareInteractions();
 }

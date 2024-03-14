@@ -23,7 +23,7 @@ public class ReflectionTests
     [Test]
     public async Task TestModulesLoading_NoSP_NoStrict()
     {
-        InstanceTests.Service.StrictLoadingModeEnabled = false;
+        InstanceTests.Service.Config.StrictLoadingModeEnabled = false;
         
         GenericMultipleLoadingResult<InteractionModuleInfo> loadingResult = 
             await InstanceTests.Service.Loader.LoadInteractionModulesAsync(

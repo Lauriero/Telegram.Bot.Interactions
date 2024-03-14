@@ -91,7 +91,7 @@ internal static class DescriptorBuilders
         IInteractionService interactionService)
     {
         List<HandlerLoadingResult> results = new List<HandlerLoadingResult>();
-        foreach (MethodInfo methodInfo in moduleInfo.ModuleType.GetMethods()) {
+        foreach (MethodInfo methodInfo in moduleInfo.Type.GetMethods()) {
             InteractionHandlerAttribute? handlerAttribute =
                 methodInfo.GetCustomAttribute<InteractionHandlerAttribute>();
 
@@ -100,7 +100,7 @@ internal static class DescriptorBuilders
             }
 
             if (!IsValidHandlerDefinition(methodInfo)) {
-                HandlerLoadingException exception = new HandlerLoadingException(moduleInfo.ModuleType,
+                HandlerLoadingException exception = new HandlerLoadingException(moduleInfo.Type,
                     methodInfo, 
                     "Handler definition should be a non-static, non-abstract "       +
                     "public method, that doesn't have generic parameters, but found method " +
