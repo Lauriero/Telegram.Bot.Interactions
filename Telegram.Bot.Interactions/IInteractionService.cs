@@ -27,7 +27,7 @@ public interface IInteractionService
     /// <summary>
     /// Contains the list of loaded interactions.
     /// </summary>
-    public IReadOnlyList<IInteraction> LoadedInteractions { get; }
+    IReadOnlyDictionary<int, InteractionInfo> LoadedInteractions { get; }
     
     /// <summary>
     /// Contains the list of loaded interaction modules.

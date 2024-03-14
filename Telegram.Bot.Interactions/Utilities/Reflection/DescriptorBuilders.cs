@@ -40,19 +40,6 @@ internal static class DescriptorBuilders
                     loadingException: exception));
                 continue;
             }
-
-            List<InteractionHandlerInfo> handlerInfos = new List<InteractionHandlerInfo>();
-            foreach (HandlerLoadingResult result in BuildHandlerInfos(typeInfo, interactionService)) {
-                if (result.Loaded) {
-                    handlerInfos.Add(result.Info);
-                }
-            }
-
-            if (handlerInfos.Count == 0) {
-                interactionService.Logger.LogWarning("Module {moduleName} does not " +
-                    "have any interaction handlers", typeInfo.FullName);
-                continue;
-            }
             
             IInteractionModule? instance = (IInteractionModule?)serviceProvider.GetService(typeInfo);
             if (instance is null) {
@@ -80,6 +67,19 @@ internal static class DescriptorBuilders
             InteractionModuleInfo moduleInfo = new InteractionModuleInfo(
                 typeInfo, interactionService, serviceProvider, instance);
             
+            List<InteractionHandlerInfo> handlerInfos = new List<InteractionHandlerInfo>();
+            foreach (HandlerLoadingResult result in BuildHandlerInfos(moduleInfo, interactionService)) {
+                if (result.Loaded) {
+                    handlerInfos.Add(result.Info);
+                }
+            }
+            
+            if (handlerInfos.Count == 0) {
+                interactionService.Logger.LogWarning("Module {moduleName} does not " +
+                                                     "have any interaction handlers", typeInfo.FullName);
+                continue;
+            }
+            
             moduleInfo.HandlerInfos.AddRange(handlerInfos);
             results.Add(new ModuleLoadingResult(true, moduleInfo));
         }
@@ -87,11 +87,11 @@ internal static class DescriptorBuilders
         return results;
     }
 
-    private static IEnumerable<HandlerLoadingResult> BuildHandlerInfos(TypeInfo moduleType,
+    private static IEnumerable<HandlerLoadingResult> BuildHandlerInfos(InteractionModuleInfo moduleInfo,
         IInteractionService interactionService)
     {
         List<HandlerLoadingResult> results = new List<HandlerLoadingResult>();
-        foreach (MethodInfo methodInfo in moduleType.GetMethods()) {
+        foreach (MethodInfo methodInfo in moduleInfo.ModuleType.GetMethods()) {
             InteractionHandlerAttribute? handlerAttribute =
                 methodInfo.GetCustomAttribute<InteractionHandlerAttribute>();
 
@@ -100,7 +100,7 @@ internal static class DescriptorBuilders
             }
 
             if (!IsValidHandlerDefinition(methodInfo)) {
-                HandlerLoadingException exception = new HandlerLoadingException(moduleType,
+                HandlerLoadingException exception = new HandlerLoadingException(moduleInfo.ModuleType,
                     methodInfo, 
                     "Handler definition should be a non-static, non-abstract "       +
                     "public method, that doesn't have generic parameters, but found method " +
@@ -113,7 +113,7 @@ internal static class DescriptorBuilders
             }
             
             InteractionHandlerInfo info = new InteractionHandlerInfo(
-                handlerAttribute.InteractionId, handlerAttribute.RunMode, methodInfo);
+                handlerAttribute.InteractionId, handlerAttribute.RunMode, methodInfo, moduleInfo);
             results.Add(new HandlerLoadingResult(true, info));
         }
 

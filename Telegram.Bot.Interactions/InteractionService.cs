@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
@@ -15,6 +16,8 @@ using Telegram.Bot.Interactions.Model.Descriptors.Loading.Abstraction;
 using Telegram.Bot.Interactions.Utilities.DependencyInjection;
 using Telegram.Bot.Interactions.Utilities.Reflection;
 
+using Interaction = Microsoft.VisualBasic.Interaction;
+
 namespace Telegram.Bot.Interactions;
 
 /// <inheritdoc />
@@ -25,13 +28,13 @@ public class InteractionService : IInteractionService
 
     public bool StrictLoadingModeEnabled { get; set; } = false;
     
-    public IReadOnlyList<IInteraction> LoadedInteractions { get; }
+    public IReadOnlyDictionary<int, InteractionInfo> LoadedInteractions { get; }
     
     public IReadOnlyDictionary<Type, InteractionModuleInfo> LoadedModules { get; }
 
-    private SemaphoreSlim _lock;
     private IServiceProvider? _serviceProvider;
-    private readonly List<IInteraction> _loadedInteractions;
+    private readonly SemaphoreSlim _lock;
+    private readonly Dictionary<int, InteractionInfo> _loadedInteractions;
     private readonly Dictionary<Type, InteractionModuleInfo> _loadedModules;
     
     public InteractionService()
@@ -39,8 +42,8 @@ public class InteractionService : IInteractionService
         _lock = new SemaphoreSlim(1, 1);
         Logger = new NullLogger<IInteractionService>();
 
-        _loadedInteractions = new List<IInteraction>();
-        LoadedInteractions  = new ReadOnlyCollection<IInteraction>(_loadedInteractions);
+        _loadedInteractions = new Dictionary<int, InteractionInfo>();
+        LoadedInteractions  = new ReadOnlyDictionary<int, InteractionInfo>(_loadedInteractions);
 
         _loadedModules = new Dictionary<Type, InteractionModuleInfo>();
         LoadedModules  = new ReadOnlyDictionary<Type, InteractionModuleInfo>(_loadedModules);
@@ -53,14 +56,39 @@ public class InteractionService : IInteractionService
     {
         _serviceProvider = serviceProvider ?? new EmptyServiceProvider();
         await _lock.WaitAsync().ConfigureAwait(false);
+
         try {
             IList<ModuleLoadingResult> loadingResults = 
                 DescriptorBuilders.BuildModuleInfos(interactionsAssembly, _serviceProvider,
                 this);
-            
+
+            List<IInteraction>           interactionsList    = new List<IInteraction>();
+            List<InteractionHandlerInfo> interactionHandlers = new List<InteractionHandlerInfo>();
             foreach (ModuleLoadingResult moduleLoadingResult in loadingResults) {
-                if (moduleLoadingResult.Loaded) {
-                    _loadedModules.Add(moduleLoadingResult.Info.ModuleType, moduleLoadingResult.Info);
+                if (!moduleLoadingResult.Loaded) {
+                    continue;
+                }
+                
+                InteractionModuleInfo moduleInfo = moduleLoadingResult.Info;
+                interactionHandlers.AddRange(moduleInfo.HandlerInfos);
+                interactionsList.AddRange(moduleInfo.Instance.DeclareInteractions());
+                
+                _loadedModules.Add(moduleInfo.ModuleType, moduleInfo);
+            }
+
+            foreach (IInteraction interaction in interactionsList) {
+                bool handlerFound = false;
+                foreach (InteractionHandlerInfo handlerInfo in interactionHandlers) {
+                    if (interaction.Id == handlerInfo.InteractionId) {
+                        handlerFound = true;
+                        _loadedInteractions.Add(interaction.Id, new InteractionInfo(interaction, handlerInfo));
+                        break;
+                    }
+                }
+
+                if (!handlerFound) {
+                    Logger.LogWarning("Handler for the interaction {id} was not found, " +
+                                      "the interaction will not be handled", interaction.Id);
                 }
             }
             
