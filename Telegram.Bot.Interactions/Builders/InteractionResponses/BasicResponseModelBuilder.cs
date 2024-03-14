@@ -4,7 +4,6 @@ using Telegram.Bot.Interactions.Exceptions;
 using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Model.Responses.Implementation;
 using Telegram.Bot.Interactions.Parsers;
-using Telegram.Bot.Interactions.Registry;
 
 namespace Telegram.Bot.Interactions.Builders.InteractionResponses;
 
@@ -51,19 +50,6 @@ public class BasicResponseModelBuilder<TResponse> : IResponseModelBuilder<TRespo
     /// </summary>
     public IResponseModel<TResponse> Build()
     {
-        ResolveParserType();
         return new BasicResponseModel<TResponse>(_key, _parserType);
-    }
-
-    [MemberNotNull(nameof(_parserType))]
-    protected void ResolveParserType()
-    {
-         if (_parserType is null) {
-            if (!DefaultParserTypes.Entries.TryGetValue(typeof(TResponse), out Type? parserType)) {
-                throw new ParserNotRegisteredException<TResponse>();
-            }
-
-            _parserType = parserType;
-         }
     }
 }

@@ -43,8 +43,8 @@ internal static class DescriptorBuilders
             
             IInteractionModule? instance = (IInteractionModule?)serviceProvider.GetService(typeInfo);
             if (instance is null) {
-                if (typeInfo.GetConstructor(BindingFlags.Public, Array.Empty<Type>()) 
-                    is null) {
+                if (!typeInfo.DeclaredConstructors.Any(
+                        c => c.IsPublic && c.GetParameters().Length == 0)) {
                     ModuleLoadingException exception = new ModuleLoadingException(typeInfo,
                         "Module should be either added to service provider's collection " +
                         "or should have a parameterless constructor in order to instantiate it");
@@ -125,7 +125,7 @@ internal static class DescriptorBuilders
     {
         List<TypeInfo> moduleTypes = new List<TypeInfo>();
         foreach (TypeInfo typeInfo in assembly.DefinedTypes) {
-            if (_moduleInterfaceType.IsAssignableFrom(typeInfo)) {
+            if (!_moduleInterfaceType.IsAssignableFrom(typeInfo)) {
                 continue;
             }
 

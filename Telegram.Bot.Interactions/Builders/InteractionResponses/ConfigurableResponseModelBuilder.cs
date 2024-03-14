@@ -1,7 +1,6 @@
 ﻿using Telegram.Bot.Interactions.Builders.Configs;
 using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Model.Responses.Implementation;
-using Telegram.Bot.Interactions.Registry;
 using Telegram.Bot.Interactions.Validators;
 
 namespace Telegram.Bot.Interactions.Builders.InteractionResponses;
@@ -58,16 +57,6 @@ public class ConfigurableResponseModelBuilder<TResponse> : BasicResponseModelBui
 
     public new ConfigurableResponseModel<TResponse> Build()
     {
-        ResolveParserType();
-        if (_validatorType is null) {
-            if (!DefaultValidatorTypes.Entries.TryGetValue(typeof(TResponse), out Type? validatorType)) {
-                // TODO: Add warning logging
-                _validatorType = typeof(NullResponseValidator);
-            } else {
-                _validatorType = validatorType;
-            }
-        }
-
         return new ConfigurableResponseModel<TResponse>(_key, _parserType, _config, _validatorType);
     }
 }

@@ -11,11 +11,12 @@ public class InteractionHandlerInfo
     public readonly MethodInfo MethodInfo;
     public readonly InteractionModuleInfo Module;
     
-    public InteractionHandlerInfo(int interactionId, HandlerRunMode runMode, MethodInfo methodInfo, InteractionModuleInfo module)
+    public InteractionHandlerInfo(int interactionId, HandlerRunMode runMode, 
+        MethodInfo methodInfo, InteractionModuleInfo module)
     {
+        Module        = module;
         RunMode       = runMode;
         MethodInfo    = methodInfo;
-        Module   = module;
         InteractionId = interactionId;
     }
 }

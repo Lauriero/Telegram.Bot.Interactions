@@ -13,9 +13,9 @@ public class InteractionInfo
     /// <summary>
     /// Descriptor of the method that will handle this interaction.
     /// </summary>
-    public InteractionHandlerInfo Handler;
+    public InteractionHandlerInfo? Handler;
 
-    public InteractionInfo(IInteraction interaction, InteractionHandlerInfo handler)
+    public InteractionInfo(IInteraction interaction, InteractionHandlerInfo? handler)
     {
         Handler     = handler;
         Interaction = interaction;

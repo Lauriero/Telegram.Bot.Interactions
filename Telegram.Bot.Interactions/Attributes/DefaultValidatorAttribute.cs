@@ -1,13 +1,13 @@
-﻿using Telegram.Bot.Interactions.Registry;
+﻿using Telegram.Bot.Interactions.Services.Abstraction;
 
 namespace Telegram.Bot.Interactions.Attributes;
 
 /// <summary>
 /// Marks the validator as the default one for the type.
 /// Marking the validator with this attribute is equivalent to
-/// adding the parser type with the <see cref="DefaultValidatorTypes.RegisterDefaultValidatorType{TResponse,TDefaultParser}"/>.
+/// adding the validator type with the <see cref="IEntitiesLoader"/> 
 /// </summary>
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class DefaultValidatorAttribute : Attribute
 {
     public readonly Type ResponseType; 

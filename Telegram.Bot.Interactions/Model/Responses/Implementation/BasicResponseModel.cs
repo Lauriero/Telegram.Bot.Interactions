@@ -24,12 +24,12 @@ public class BasicResponseModel<TResponse> : IResponseModel<TResponse>
     public bool? Valid { get; internal set; }
 
     /// <inheritdoc />
-    public TResponse? Response { get; }
+    public TResponse? Response { get; internal set; }
 
     /// <inheritdoc />
-    public Type ResponseParserType { get; }
+    public Type? ResponseParserType { get; }
 
-    public BasicResponseModel(string key, Type responseParserType)
+    public BasicResponseModel(string key, Type? responseParserType)
     {
         Key = key;
         Responded = false;

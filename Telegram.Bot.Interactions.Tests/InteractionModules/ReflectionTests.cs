@@ -1,7 +1,8 @@
 ﻿using System.Reflection;
 
-using Telegram.Bot.Interactions.Model.Descriptors.Loading;
+using Telegram.Bot.Interactions.Model.Descriptors;
 using Telegram.Bot.Interactions.Model.Descriptors.Loading.Abstraction;
+using Telegram.Bot.Interactions.Tests.Environment;
 
 namespace Telegram.Bot.Interactions.Tests.InteractionModules;
 
@@ -14,17 +15,21 @@ public class ReflectionTests
     public void Setup()
     {
         _environmentAssembly 
-            = Assembly.GetAssembly(typeof(IInteractionService)) 
+            = Assembly.GetAssembly(typeof(TestInteraction)) 
               ?? throw new InvalidOperationException("Test environment assembly " +
                                                      "was not found");
     }
 
     [Test]
-    public async Task TestLoading_NoSP()
+    public async Task TestModulesLoading_NoSP_NoStrict()
     {
-        MultipleLoadingResult<ModuleLoadingResult> loadingResult = 
-            await InstanceTests.Service.LoadInteractionModulesAsync(_environmentAssembly);
+        InstanceTests.Service.StrictLoadingModeEnabled = false;
+        
+        GenericMultipleLoadingResult<InteractionModuleInfo> loadingResult = 
+            await InstanceTests.Service.Loader.LoadInteractionModulesAsync(
+                _environmentAssembly);
         
         Assert.That(loadingResult.Loaded, Is.False);
+        ;
     }
 }

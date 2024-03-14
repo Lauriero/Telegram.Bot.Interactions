@@ -38,7 +38,8 @@ public interface IResponseModel<out TResponse>
     public TResponse? Response { get; }
     
     /// <summary>
-    /// TODO: Add summary
+    /// Specifies the type of the parser that will be used to process the response.
+    /// Is loaded when the response model is processed by the interaction service.
     /// </summary>
-    public Type ResponseParserType { get; }
+    public Type? ResponseParserType { get; }
 }

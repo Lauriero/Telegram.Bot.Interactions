@@ -25,10 +25,10 @@ public class ConfigurableResponseModel<TResponse> : IResponseModel<TResponse>
     public bool? Valid { get; internal set; }
 
     /// <inheritdoc />
-    public TResponse? Response { get; }
+    public TResponse? Response { get; internal set; }
     
     /// <inheritdoc />
-    public Type ResponseParserType { get; }
+    public Type? ResponseParserType { get; }
 
     /// <summary>
     /// Configures the response validation.
@@ -38,11 +38,12 @@ public class ConfigurableResponseModel<TResponse> : IResponseModel<TResponse>
     /// <summary>
     /// Type of the validator that implements <see cref="IResponseValidator{TResponse}"/> interface
     /// and will be used to validate the response.
+    /// Is loaded when the response model is processed by the interaction service.
     /// </summary>
-    public Type ValidatorType { get; }
+    public Type? ValidatorType { get; }
 
-    public ConfigurableResponseModel(string key, Type responseParserType,
-        IResponseModelConfig<TResponse> config, Type validatorType)
+    public ConfigurableResponseModel(string key, Type? responseParserType,
+        IResponseModelConfig<TResponse> config, Type? validatorType)
     {
         // TODO: Validate validator type
         // TODO: Validate parser type

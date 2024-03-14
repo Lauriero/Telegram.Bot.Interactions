@@ -4,7 +4,7 @@ using Telegram.Bot.Types;
 namespace Telegram.Bot.Interactions.Parsers;
 
 public interface IResponseParser<TResponse>
-    where TResponse : IUserResponse
+    where TResponse : class, IUserResponse, new()
 {
     public bool CanParse(Message message);
     
