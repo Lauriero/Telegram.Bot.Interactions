@@ -18,7 +18,8 @@ public static class DefaultServiceProvider
     {
         ServiceCollection collection = new ServiceCollection();
         collection.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
-        collection.AddSingleton<IEntitiesLoader, EntitiesLoader>();
+        collection.AddSingleton<IEntitiesLoader, EntitiesLoader>(); 
+        collection.AddSingleton<IConfigurationService, ConfigurationService>();
         collection.AddSingleton<ILoadedEntitiesRegistry, LoadedEntitiesRegistry>();
 
         return collection.BuildServiceProvider();

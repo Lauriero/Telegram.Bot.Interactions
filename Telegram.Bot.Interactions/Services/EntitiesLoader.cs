@@ -7,7 +7,9 @@ using Telegram.Bot.Interactions.Attributes.Modules;
 using Telegram.Bot.Interactions.Exceptions.Modules;
 using Telegram.Bot.Interactions.InteractionHandlers;
 using Telegram.Bot.Interactions.Model;
+using Telegram.Bot.Interactions.Model.Context;
 using Telegram.Bot.Interactions.Model.Descriptors;
+using Telegram.Bot.Interactions.Model.Descriptors.Loading;
 using Telegram.Bot.Interactions.Model.Descriptors.Loading.Abstraction;
 using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Parsers;
@@ -38,7 +40,7 @@ public class EntitiesLoader : IEntitiesLoader
         _config      = config;
     }
     
-    public async Task<GenericMultipleLoadingResult<InteractionModuleInfo>>
+    public async Task<MultipleLoadingResult<ModuleLoadingResult>>
         LoadInteractionModulesAsync(Assembly interactionsAssembly,
             IServiceProvider? serviceProvider = null)
     {
@@ -46,50 +48,26 @@ public class EntitiesLoader : IEntitiesLoader
         await _lock.WaitAsync().ConfigureAwait(false);
 
         try {
-            IList<GenericLoadingResult<InteractionModuleInfo>> loadingResults = 
+            IList<ModuleLoadingResult> loadingResults =
                 BuildModuleInfos(interactionsAssembly, serviceProvider);
 
-            
-            List<InteractionHandlerInfo> interactionHandlers = new();
-            foreach (GenericLoadingResult<InteractionModuleInfo> moduleLoadingResult in loadingResults) {
+            foreach (ModuleLoadingResult moduleLoadingResult in loadingResults) {
                 if (!moduleLoadingResult.Loaded) {
                     continue;
                 }
-                
-                InteractionModuleInfo moduleInfo = moduleLoadingResult.Entity;
-                
+
+                InteractionModuleInfo moduleInfo = moduleLoadingResult.Info;
+
                 _entitiesRegistry.RegisterInteractionModule(moduleInfo);
-                foreach (IInteraction interaction in moduleInfo.Instance.DeclareInteractions()) {
-                    _entitiesRegistry.RegisterInteraction(new InteractionInfo(interaction,
-                        null));
-                }
-                
-                interactionHandlers.AddRange(moduleInfo.HandlerInfos);
             }
 
-            foreach (InteractionInfo info in _entitiesRegistry.Interactions.Values) {
-                bool handlerFound = false;
-                for (int i = 0; i < interactionHandlers.Count; i++) {
-                    InteractionHandlerInfo handlerInfo = interactionHandlers[i];
-                    if (info.Interaction.Id == handlerInfo.InteractionId) {
-                        handlerFound = true;
-                        info.Handler = handlerInfo;
-                        interactionHandlers.RemoveAt(i);
-                        break;
-                    }
-                }
-
-                if (!handlerFound) {
-                    _logger.LogWarning("Handler for the interaction {id} was not found, " +
-                                       "the interaction will not be handled", info.Interaction.Id);
-                }
-            }
-
-            foreach (InteractionHandlerInfo info in interactionHandlers) {
-                _logger.LogWarning("Interaction handler was left without ");
+            return MultipleLoadingResult<ModuleLoadingResult>.FromSuccess(loadingResults);
+        } catch (Exception e) {
+            if (_config.StrictLoadingModeEnabled) {
+                throw;
             }
             
-            return new GenericMultipleLoadingResult<InteractionModuleInfo>(loadingResults);
+            return MultipleLoadingResult<ModuleLoadingResult>.FromFailure(e);
         } finally {
             _lock.Release();
         }
@@ -118,11 +96,10 @@ public class EntitiesLoader : IEntitiesLoader
     /// </summary>
     /// <param name="assembly"><see cref="Assembly"/> to search for the modules.</param>
     /// <param name="serviceProvider"><see cref="IServiceProvider"/> to use to create instances of the found modules.</param>
-    private IList<GenericLoadingResult<InteractionModuleInfo>> BuildModuleInfos(Assembly assembly, 
+    private IList<ModuleLoadingResult> BuildModuleInfos(Assembly assembly, 
         IServiceProvider serviceProvider)
     {
-        List<int> loadedHandlerInteractionIds = new();
-        List<GenericLoadingResult<InteractionModuleInfo>> results = new();
+        List<ModuleLoadingResult> results = new();
         foreach (TypeInfo typeInfo in SearchModules(assembly)) {
             if (!IsValidModuleDefinition(typeInfo)) {
                 ModuleLoadingException exception = new ModuleLoadingException(typeInfo,
@@ -131,7 +108,7 @@ public class EntitiesLoader : IEntitiesLoader
                     $"in these constrains");
 
                 HandleSoftLoadingException(exception);
-                results.Add(GenericLoadingResult<InteractionModuleInfo>.FromFailure(exception));
+                results.Add(ModuleLoadingResult.FromFailure(exception));
                 continue;
             }
             
@@ -144,7 +121,7 @@ public class EntitiesLoader : IEntitiesLoader
                         "or should have a parameterless constructor in order to instantiate it");
                     
                     HandleSoftLoadingException(exception);
-                    results.Add(GenericLoadingResult<InteractionModuleInfo>.FromFailure(exception));
+                    results.Add(ModuleLoadingResult.FromFailure(exception));
                     continue;
                 }
 
@@ -153,27 +130,26 @@ public class EntitiesLoader : IEntitiesLoader
                 } catch (Exception e) {
                     ModuleLoadingException exception = new ModuleLoadingException(typeInfo, e.Message);
                     HandleSoftLoadingException(exception);
-                    results.Add(GenericLoadingResult<InteractionModuleInfo>.FromFailure(exception));
+                    results.Add(ModuleLoadingResult.FromFailure(exception));
                     continue;
                 }
+            }
+
+            foreach (IInteraction interaction in instance.DeclareInteractions()) {
+                _entitiesRegistry.RegisterInteraction(new InteractionInfo(interaction, null));
             }
             
             InteractionModuleInfo moduleInfo = new InteractionModuleInfo(
                 typeInfo, InteractionService, serviceProvider, instance);
             
             List<InteractionHandlerInfo> handlerInfos = new List<InteractionHandlerInfo>();
-            foreach (GenericLoadingResult<InteractionHandlerInfo> result in BuildHandlerInfos(moduleInfo)) {
+            IList<GenericLoadingResult<InteractionHandlerInfo>> handlerInfosBuildingResult =
+                BuildHandlerInfos(moduleInfo);
+            foreach (GenericLoadingResult<InteractionHandlerInfo> result in handlerInfosBuildingResult) {
                 if (!result.Loaded) {
                     continue;
                 }
 
-                InteractionHandlerInfo handlerInfo = result.Entity;
-                if (loadedHandlerInteractionIds.Contains(result.Entity.InteractionId)) {
-                    HandleSoftLoadingException(new HandlerLoadingException(
-                        handlerInfo.Module.Type, handlerInfo.MethodInfo, 
-                        ""));
-                }
-                
                 handlerInfos.Add(result.Entity);
             }
             
@@ -184,13 +160,13 @@ public class EntitiesLoader : IEntitiesLoader
             }
             
             moduleInfo.HandlerInfos.AddRange(handlerInfos);
-            results.Add(GenericLoadingResult<InteractionModuleInfo>.FromSuccess(moduleInfo));
+            results.Add(ModuleLoadingResult.FromSuccess(moduleInfo, handlerInfosBuildingResult));
         }
         
         return results;
     }
 
-    private IEnumerable<GenericLoadingResult<InteractionHandlerInfo>> BuildHandlerInfos(
+    private IList<GenericLoadingResult<InteractionHandlerInfo>> BuildHandlerInfos(
         InteractionModuleInfo moduleInfo)
     {
         List<GenericLoadingResult<InteractionHandlerInfo>> results = new();
@@ -202,6 +178,32 @@ public class EntitiesLoader : IEntitiesLoader
                 continue;
             }
 
+            if (!_entitiesRegistry.Interactions.ContainsKey(handlerAttribute.InteractionId)) {
+                HandlerLoadingException exception = new HandlerLoadingException(moduleInfo.Type,
+                    methodInfo, 
+                    $"Interaction {handlerAttribute.InteractionId} was not registered " +
+                    $"before the handler loading");
+
+                HandleSoftLoadingException(exception);
+                results.Add(GenericLoadingResult<InteractionHandlerInfo>.FromFailure(
+                    methodInfo.Name, exception));
+                continue;
+            }
+
+            InteractionInfo currentHandlerInteractionInfo =
+                _entitiesRegistry.Interactions[handlerAttribute.InteractionId];
+            
+            if (currentHandlerInteractionInfo.HandlerInfo is not null) {
+                HandlerLoadingException exception = new HandlerLoadingException(moduleInfo.Type,
+                    methodInfo, $"The handler for the interaction {handlerAttribute.InteractionId} " +
+                                $"was already found");
+
+                HandleSoftLoadingException(exception);
+                results.Add(GenericLoadingResult<InteractionHandlerInfo>.FromFailure(
+                    methodInfo.Name, exception));
+                continue;
+            }
+
             if (!IsValidHandlerDefinition(methodInfo)) {
                 HandlerLoadingException exception = new HandlerLoadingException(moduleInfo.Type,
                     methodInfo, 
@@ -210,14 +212,104 @@ public class EntitiesLoader : IEntitiesLoader
                     "does not fit in these constraints");
 
                 HandleSoftLoadingException(exception);
-                results.Add(GenericLoadingResult<InteractionHandlerInfo>.FromFailure(exception));
+                results.Add(GenericLoadingResult<InteractionHandlerInfo>.FromFailure(
+                    methodInfo.Name, exception));
+                continue;
+            }
+
+            bool  isAsync;
+            bool  isCancellable               = false;
+            bool  acceptsSpecificContext      = false;
+            Type? specificContextResponseType = null;
+            
+            if (methodInfo.ReturnType.IsEquivalentTo(typeof(void))) {
+                isAsync = false;
+            } else if (methodInfo.ReturnType.IsEquivalentTo(typeof(Task))) {
+                isAsync = true;
+            } else {
+                HandlerLoadingException exception = new HandlerLoadingException(moduleInfo.Type,
+                    methodInfo, 
+                    "Handler method should only return void or Task, if used asynchronously");
+
+                HandleSoftLoadingException(exception);
+                results.Add(GenericLoadingResult<InteractionHandlerInfo>.FromFailure(
+                    methodInfo.Name, exception));
+                continue;
+            }
+
+            ParameterInfo[] handlerParams = methodInfo.GetParameters();
+            if (handlerParams.Length is 0 or > 2) {
+                HandlerLoadingException exception = new HandlerLoadingException(moduleInfo.Type,
+                    methodInfo, 
+                    "Handler method should have 1 or 2 parameters.");
+
+                HandleSoftLoadingException(exception);
+                results.Add(GenericLoadingResult<InteractionHandlerInfo>.FromFailure(
+                    methodInfo.Name, exception));
+                continue;
+            }
+
+            if (handlerParams.Length == 2) {
+                if (handlerParams[1].ParameterType.IsEquivalentTo(typeof(CancellationToken))) {
+                    isCancellable = true;
+                } else {
+                    HandlerLoadingException exception = new HandlerLoadingException(moduleInfo.Type,
+                        methodInfo, 
+                        "The second parameter of the handler method, if present, should " +
+                        "be of the CancellationToken type");
+
+                    HandleSoftLoadingException(exception);
+                    results.Add(GenericLoadingResult<InteractionHandlerInfo>.FromFailure(
+                        methodInfo.Name, exception));
+                    continue;
+                }
+            }
+            
+            Type firstParamType = handlerParams[0].ParameterType;
+            if (!firstParamType.IsGenericType 
+                || firstParamType.GenericTypeArguments.Length == 0 
+                || !firstParamType
+                    .GetGenericTypeDefinition()
+                    .IsEquivalentTo(typeof(IInteractionContext<>))) {
+                HandlerLoadingException exception = new HandlerLoadingException(moduleInfo.Type,
+                    methodInfo, 
+                    "The first handler parameter should be of the IInteractionContext<> type");
+
+                HandleSoftLoadingException(exception);
+                results.Add(GenericLoadingResult<InteractionHandlerInfo>.FromFailure(methodInfo.Name, exception));
+                continue;
+            }
+
+            if (firstParamType.GenericTypeArguments[0].IsEquivalentTo(typeof(IUserResponse))) {
+                acceptsSpecificContext = false;
+            } else {
+                acceptsSpecificContext      = true;
+                specificContextResponseType = firstParamType.GenericTypeArguments[0];
+            }
+
+            if (acceptsSpecificContext && (
+                    currentHandlerInteractionInfo.Interaction.AvailableResponses.Count is 0 or > 1
+                    || !currentHandlerInteractionInfo.Interaction.AvailableResponses[0]
+                                                    .GetType()
+                                                    .GenericTypeArguments[0]
+                                                    .IsEquivalentTo(specificContextResponseType))) {
+                HandlerLoadingException exception = new HandlerLoadingException(moduleInfo.Type,
+                    methodInfo, 
+                    "If the handler specifies response type, when declaring the context as "         +
+                    "its first argument, the interaction it is assigned to should have no more then " +
+                    "one response with the type that matches declared specific type");
+
+                HandleSoftLoadingException(exception);
+                results.Add(GenericLoadingResult<InteractionHandlerInfo>.FromFailure(methodInfo.Name, exception));
                 continue;
             }
             
             InteractionHandlerInfo info = new InteractionHandlerInfo(
-                handlerAttribute.InteractionId, handlerAttribute.RunMode, methodInfo, moduleInfo);
+                handlerAttribute.InteractionId, handlerAttribute.RunMode, methodInfo, moduleInfo,
+                acceptsSpecificContext, isAsync, isCancellable, specificContextResponseType);
 
-            results.Add(GenericLoadingResult<InteractionHandlerInfo>.FromSuccess(info));
+            currentHandlerInteractionInfo.HandlerInfo = info;
+            results.Add(GenericLoadingResult<InteractionHandlerInfo>.FromSuccess(info.Name, info));
         }
 
         return results;

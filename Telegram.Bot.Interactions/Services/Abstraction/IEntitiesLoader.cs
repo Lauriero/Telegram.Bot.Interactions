@@ -56,7 +56,7 @@ public interface IEntitiesLoader
     /// type of one of the interactions declared in <see cref="IInteractionModule.DeclareInteractions"/>,
     /// was not previously registered via the <see cref="LoadResponseParserAsync{TResponse,TParser}"/>.
     /// </exception>
-    public Task<GenericMultipleLoadingResult<InteractionModuleInfo>> 
+    public Task<MultipleLoadingResult<ModuleLoadingResult>> 
         LoadInteractionModulesAsync(Assembly interactionsAssembly, 
             IServiceProvider? serviceProvider = null);
 

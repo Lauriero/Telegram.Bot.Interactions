@@ -12,21 +12,24 @@ public class GenericLoadingResult<TEntity> : ILoadingResult
 {
     [MemberNotNullWhen(true, nameof(Entity))]
     public bool Loaded { get; }
+
+    public string EntityName { get; }
     
     public Exception? LoadingException { get; }
     
     public TEntity? Entity { get; }
     
-    public GenericLoadingResult(bool loaded, Exception? loadingException, TEntity? entity)
+    public GenericLoadingResult(bool loaded, string entityName, Exception? loadingException, TEntity? entity)
     {
         Loaded           = loaded;
         Entity           = entity;
+        EntityName       = entityName;
         LoadingException = loadingException;
     }
 
-    public static GenericLoadingResult<TEntity> FromSuccess(TEntity entity) =>
-        new GenericLoadingResult<TEntity>(true, null, entity);
+    public static GenericLoadingResult<TEntity> FromSuccess(string entityName, TEntity entity) =>
+        new GenericLoadingResult<TEntity>(true, entityName, null, entity);
     
-    public static GenericLoadingResult<TEntity> FromFailure(Exception exception) =>
-        new GenericLoadingResult<TEntity>(true, exception, null);
+    public static GenericLoadingResult<TEntity> FromFailure(string entityName, Exception exception) =>
+        new GenericLoadingResult<TEntity>(false, entityName, exception, null);
 }
