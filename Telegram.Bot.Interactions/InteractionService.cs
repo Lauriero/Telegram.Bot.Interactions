@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 using JetBrains.Annotations;
 
@@ -27,25 +28,25 @@ public class InteractionService : IInteractionService
 
     public InteractionService()
     {
-        ApplyDependencies();
+        InternalInit();
     }
     
     [UsedImplicitly]
     public InteractionService(ILogger<IInteractionService> logger, IEntitiesLoader loader, 
         ILoadedEntitiesRegistry registry, IConfigurationService config)
     {
-        ApplyDependencies(logger, loader, registry, config);
+        InternalInit(logger, loader, registry, config);
     }
 
     [MemberNotNull(nameof(Logger))]
     [MemberNotNull(nameof(Loader))]
     [MemberNotNull(nameof(Registry))]
     [MemberNotNull(nameof(Config))]
-    private void ApplyDependencies(ILogger<IInteractionService>? logger = null,
+    private void InternalInit(ILogger<IInteractionService>? logger = null,
         IEntitiesLoader? loader = null, ILoadedEntitiesRegistry? registry = null,
         IConfigurationService? config = null)
     {
-        IServiceProvider provider = DefaultServiceProvider.Instance;
+        IServiceProvider provider = DefaultServiceProvider.BuildDefaultServiceProvider();
 
         Logger   = logger   ?? provider.GetRequiredService<ILogger<InteractionService>>();
         Registry = registry ?? provider.GetRequiredService<ILoadedEntitiesRegistry>();
@@ -55,5 +56,10 @@ public class InteractionService : IInteractionService
         if (Loader is EntitiesLoader defaultLoader) {
             defaultLoader.InteractionService = this;
         }
+
+        bool strictTemp = Config.StrictLoadingModeEnabled;
+        Config.StrictLoadingModeEnabled = true;
+        Loader.LoadResponseParsers(Assembly.GetAssembly(typeof(InteractionService))!);
+        Config.StrictLoadingModeEnabled = strictTemp;
     }
 }

@@ -62,6 +62,12 @@ public class LoadedEntitiesRegistry : ILoadedEntitiesRegistry
         }
 
         List<ResponseParserInfo> storedParsers = _responseParsersInternal[parserInfo.TargetResponseType];
+        if (storedParsers.Any(p => p.ParserType.IsEquivalentTo(parserInfo.ParserType))) {
+            throw new EntityRegistrationException<ResponseParserInfo>(parserInfo,
+                $"Attempt to register the parser {parserInfo.ParserType} that is already " +
+                $"registered.");
+        }
+        
         if (parserInfo.Default && storedParsers.Any(i => i.Default)) {
             throw new EntityRegistrationException<ResponseParserInfo>(parserInfo,
                 $"Attempt to register the default parser {parserInfo.ParserType} for the " +

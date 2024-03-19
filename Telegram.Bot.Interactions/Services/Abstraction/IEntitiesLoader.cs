@@ -45,23 +45,27 @@ public interface IEntitiesLoader
     /// </returns>
     /// <exception cref="ModuleLoadingException">
     /// Is occurred on loading errors related to the module being not-properly
-    /// defined if the <see cref="IInteractionService.StrictLoadingModeEnabled"/> is set to true.
+    /// defined if the <see cref="IConfigurationService.StrictLoadingModeEnabled"/> is set to true.
     /// </exception>
     /// <exception cref="HandlerLoadingException">
     /// Is occurred on loading errors related to the module handlers being not-properly
-    /// defined if the <see cref="IInteractionService.StrictLoadingModeEnabled"/> is set to true.
+    /// defined if the <see cref="IConfigurationService.StrictLoadingModeEnabled"/> is set to true.
     /// </exception>
     /// <exception cref="ParserNotRegisteredException{TResponse}">
     /// Is occurred when the default parser for the type, that is declared as a response
     /// type of one of the interactions declared in <see cref="IInteractionModule.DeclareInteractions"/>,
-    /// was not previously registered via the <see cref="LoadResponseParserAsync{TResponse,TParser}"/>.
+    /// was not previously registered via the <see cref="LoadResponseParser{TResponse,TParser}"/>.
     /// </exception>
-    public Task<MultipleLoadingResult<ModuleLoadingResult>> 
-        LoadInteractionModulesAsync(Assembly interactionsAssembly, 
+    public MultipleLoadingResult<ModuleLoadingResult> 
+        LoadInteractionModules(Assembly interactionsAssembly, 
             IServiceProvider? serviceProvider = null);
 
-    public Task<GenericLoadingResult<ResponseParserInfo>>
-        LoadResponseParserAsync<TResponse, TParser>()
+    public GenericMultipleLoadingResult<ResponseParserInfo>
+        LoadResponseParsers(Assembly parsersAssembly,
+            IServiceProvider? serviceProvider = null);
+    
+    public GenericLoadingResult<ResponseParserInfo>
+        LoadResponseParser<TResponse, TParser>(IServiceProvider? serviceProvider = null)
         where TResponse : class, IUserResponse, new()
         where TParser : IResponseParser<TResponse>;
 }

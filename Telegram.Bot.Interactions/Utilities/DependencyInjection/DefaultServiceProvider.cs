@@ -9,12 +9,7 @@ namespace Telegram.Bot.Interactions.Utilities.DependencyInjection;
 
 public static class DefaultServiceProvider
 {
-    private static IServiceProvider? _instance;
-
-    public static IServiceProvider Instance => 
-        _instance ??= BuildDefaultServiceProvider();
-
-    private static IServiceProvider BuildDefaultServiceProvider()
+    public static IServiceProvider BuildDefaultServiceProvider()
     {
         ServiceCollection collection = new ServiceCollection();
         collection.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));

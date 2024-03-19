@@ -3,6 +3,7 @@ using System.Reflection;
 
 using Microsoft.Extensions.Logging;
 
+using Telegram.Bot.Interactions.Attributes;
 using Telegram.Bot.Interactions.Attributes.Modules;
 using Telegram.Bot.Interactions.Exceptions.Modules;
 using Telegram.Bot.Interactions.InteractionHandlers;
@@ -26,7 +27,6 @@ public class EntitiesLoader : IEntitiesLoader
     
     internal IInteractionService InteractionService { private get; set; } = null!;
     
-    private readonly SemaphoreSlim _lock;
     private readonly IConfigurationService _config;
     private readonly ILoadedEntitiesRegistry _entitiesRegistry;
     private readonly ILogger<IEntitiesLoader> _logger;
@@ -34,19 +34,16 @@ public class EntitiesLoader : IEntitiesLoader
     public EntitiesLoader(ILoadedEntitiesRegistry entitiesRegistry, 
         ILogger<IEntitiesLoader> logger, IConfigurationService config)
     {
-        _lock             = new SemaphoreSlim(1, 1);
-        _entitiesRegistry = entitiesRegistry;
         _logger           = logger;
-        _config      = config;
+        _config           = config;
+        _entitiesRegistry = entitiesRegistry;
     }
     
-    public async Task<MultipleLoadingResult<ModuleLoadingResult>>
-        LoadInteractionModulesAsync(Assembly interactionsAssembly,
+    public MultipleLoadingResult<ModuleLoadingResult>
+        LoadInteractionModules(Assembly interactionsAssembly,
             IServiceProvider? serviceProvider = null)
     {
         serviceProvider ??= new EmptyServiceProvider();
-        await _lock.WaitAsync().ConfigureAwait(false);
-
         try {
             IList<ModuleLoadingResult> loadingResults =
                 BuildModuleInfos(interactionsAssembly, serviceProvider);
@@ -68,19 +65,108 @@ public class EntitiesLoader : IEntitiesLoader
             }
             
             return MultipleLoadingResult<ModuleLoadingResult>.FromFailure(e);
-        } finally {
-            _lock.Release();
         }
     }
+
+    public GenericMultipleLoadingResult<ResponseParserInfo>
+        LoadResponseParsers(Assembly parsersAssembly, 
+            IServiceProvider? serviceProvider = null)
+    {
+        serviceProvider ??= new EmptyServiceProvider();
+        List<GenericLoadingResult<ResponseParserInfo>> results = new();
+        foreach (TypeInfo typeInfo in parsersAssembly.DefinedTypes) {
+            if (!typeof(IResponseParser<IUserResponse>).IsAssignableFrom(typeInfo) 
+                || typeof(IResponseParser<>).IsEquivalentTo(typeInfo)) {
+                continue;
+            }
+            
+            GenericLoadingResult<ResponseParserInfo> loadingResult = LoadResponseParser(typeInfo, serviceProvider);
+            if (loadingResult.Loaded) {
+                _entitiesRegistry.RegisterResponseParser(loadingResult.Entity);
+            }
+            
+            results.Add(loadingResult);
+        }
+
+        return new GenericMultipleLoadingResult<ResponseParserInfo>(results);
+    }
     
-    public Task<GenericLoadingResult<ResponseParserInfo>> 
-        LoadResponseParserAsync<TResponse, TParser>()
+    public GenericLoadingResult<ResponseParserInfo> 
+        LoadResponseParser<TResponse, TParser>(IServiceProvider? serviceProvider = null)
             where TResponse : class, IUserResponse, new()
             where TParser : IResponseParser<TResponse>
     {
-        throw new NotImplementedException();
+        return LoadResponseParser(typeof(TParser), serviceProvider);
     }
     
+    private GenericLoadingResult<ResponseParserInfo>
+        LoadResponseParser(Type parserType, IServiceProvider? serviceProvider = null)
+    {
+        serviceProvider ??= new EmptyServiceProvider();
+        try {
+            if (!IsValidParserDefinition(parserType)) {
+                ParserLoadingException exception = new ParserLoadingException(parserType,
+                    $"Parser definition should be a non-abstract public class, " +
+                    $"but found class does not fit in these constrains");
+
+                HandleSoftLoadingException(exception);
+                return GenericLoadingResult<ResponseParserInfo>.FromFailure(parserType.Name,
+                    exception);
+            }
+
+            bool isDefault = parserType.GetCustomAttribute<DefaultParserAttribute>() is not null;
+            Type responseType = parserType
+                .GetInterfaces()
+                .First(i => 
+                    i.IsGenericType &&
+                    i.GetGenericTypeDefinition()
+                     .IsEquivalentTo(typeof(IResponseParser<>)))
+                .GenericTypeArguments[0];
+            
+            if (responseType is not { IsClass: true, IsAbstract: false }) {
+                ParserLoadingException exception = new ParserLoadingException(parserType,
+                    $"Type of the response in the parser definition should be an " +
+                    $"instantiable class");
+
+                HandleSoftLoadingException(exception);
+                return GenericLoadingResult<ResponseParserInfo>.FromFailure(parserType.Name,
+                    exception);
+            }
+
+            IResponseParser<IUserResponse>? instance = (IResponseParser<IUserResponse>?)
+                serviceProvider.GetService(parserType);
+
+            if (instance is null) {
+                if (!parserType.GetConstructors().Any(c => c.IsPublic && c.GetParameters().Length == 0)) {
+                    ParserLoadingException exception = new ParserLoadingException(parserType,
+                        "The parser should be either added to service provider's collection " +
+                        "or should have a parameterless constructor in order to instantiate it");
+
+                    HandleSoftLoadingException(exception);
+                    return GenericLoadingResult<ResponseParserInfo>.FromFailure(parserType.Name,
+                        exception);
+                }
+
+                try {
+                    instance = (IResponseParser<IUserResponse>)Activator.CreateInstance(parserType)!;
+                } catch (Exception e) {
+                    ParserLoadingException exception = new ParserLoadingException(parserType, e.Message);
+                    HandleSoftLoadingException(exception);
+                    return GenericLoadingResult<ResponseParserInfo>.FromFailure(parserType.Name,
+                        exception);
+                }
+            }
+
+            return GenericLoadingResult<ResponseParserInfo>.FromSuccess(parserType.Name,
+                new ResponseParserInfo(parserType, responseType, isDefault, instance));
+        } catch (Exception e) {
+            if (_config.StrictLoadingModeEnabled) {
+                throw;
+            }
+            
+            return GenericLoadingResult<ResponseParserInfo>.FromFailure(parserType.Name, e);
+        }
+    }
     
     /// <summary>
     /// Scans <see cref="Assembly"/> to search for the interaction modules, loads them,
@@ -334,7 +420,7 @@ public class EntitiesLoader : IEntitiesLoader
     private static bool IsValidModuleDefinition(TypeInfo typeInfo)
     {
         return typeInfo is {
-            IsPublic: true, IsAbstract: false, IsNested: false,
+            IsPublic: true, IsClass: true, IsAbstract: false, IsNested: false,
             ContainsGenericParameters: false,
         };
     }
@@ -345,6 +431,14 @@ public class EntitiesLoader : IEntitiesLoader
         return methodInfo is {
             IsPublic: true, IsStatic: false, IsAbstract: false,
             ContainsGenericParameters: false
+        };
+    }
+
+    [Pure]
+    private static bool IsValidParserDefinition(Type parserType)
+    {
+        return parserType is {
+            IsPublic: true, IsClass: true, IsAbstract: false,
         };
     }
     

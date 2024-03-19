@@ -7,8 +7,6 @@ namespace Telegram.Bot.Interactions.Validators;
 /// <summary>
 /// Validator that always returns true no matter the config.
 /// </summary>
-[DefaultValidator(typeof(TextResponse))]
-[DefaultValidator(typeof(ImageResponse))]
 public class NullResponseValidator : ResponseValidator<IUserResponse>
 {
     public override ValueTask<bool> ValidateAsync(IUserResponse response)

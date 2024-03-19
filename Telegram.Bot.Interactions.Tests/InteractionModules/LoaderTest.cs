@@ -44,12 +44,18 @@ public class LoaderTest
     }
 
     [Test]
+    public void TestParsersLoading_NoSP_NoStrict()
+    {
+        
+    }
+
+    [Test]
     public async Task TestModulesLoading_NoSP_NoStrict()
     {
         InstanceTests.Service.Config.StrictLoadingModeEnabled = false;
         
         MultipleLoadingResult<ModuleLoadingResult> loadingResult = 
-            await InstanceTests.Service.Loader.LoadInteractionModulesAsync(
+            InstanceTests.Service.Loader.LoadInteractionModules(
                 _environmentAssembly);
         
         Assert.Multiple(() =>
