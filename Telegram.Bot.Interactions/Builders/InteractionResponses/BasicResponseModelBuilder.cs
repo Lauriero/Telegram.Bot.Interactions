@@ -4,6 +4,7 @@ using Telegram.Bot.Interactions.Exceptions;
 using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Model.Responses.Implementation;
 using Telegram.Bot.Interactions.Parsers;
+using Telegram.Bot.Interactions.Validators;
 
 namespace Telegram.Bot.Interactions.Builders.InteractionResponses;
 
@@ -13,9 +14,10 @@ namespace Telegram.Bot.Interactions.Builders.InteractionResponses;
 public class BasicResponseModelBuilder<TResponse> : IResponseModelBuilder<TResponse>
     where TResponse : class, IUserResponse, new()
 {
-    protected readonly string _key;
-    protected Type? _parserType;
-
+    private readonly string _key;
+    private Type? _parserType;
+    private IResponseValidator<TResponse>? _validator;
+    
     protected BasicResponseModelBuilder(string key)
     {
         _key = key;
@@ -44,12 +46,27 @@ public class BasicResponseModelBuilder<TResponse> : IResponseModelBuilder<TRespo
         _parserType = parserType;
         return this;
     }
+    
+    /// <summary>
+    /// Sets the built response validator to the specified value.
+    /// </summary>
+    /// <param name="validatorType">
+    /// Should implement <see cref="IResponseValidator{TResponse}"/>
+    /// with the <see cref="TResponse"/> type parameter.
+    /// </param>
+    public BasicResponseModelBuilder<TResponse> WithValidator(
+        IResponseValidator<TResponse> validator)
+    {
+        _validator = validator;
+        return this;
+    } 
+
 
     /// <summary>
     /// Build the response.
     /// </summary>
     public IResponseModel<TResponse> Build()
     {
-        return new BasicResponseModel<TResponse>(_key, _parserType);
+        return new BasicResponseModel<TResponse>(_key, _parserType, _validator);
     }
 }

@@ -1,10 +1,15 @@
-﻿namespace Telegram.Bot.Interactions.Model.Descriptors;
+﻿using Telegram.Bot.Interactions.Model.Responses.Abstraction;
+using Telegram.Bot.Interactions.Model.Responses.Implementation.Types;
+using Telegram.Bot.Interactions.Parsers;
+using Telegram.Bot.Interactions.Utilities.Collections;
+
+namespace Telegram.Bot.Interactions.Model.Descriptors;
 
 /// <summary>
 /// Contains info about the response parser.
 /// Is generated when the parser is loaded into the service.
 /// </summary>
-public class ResponseParserInfo
+public class ResponseParserInfo : IDefaultSettableEntity
 {
     /// <summary>
     /// Type of the parser.
@@ -23,9 +28,13 @@ public class ResponseParserInfo
     /// </summary>
     public bool Default { get; }
     
-    public ResponseParserInfo(Type parserType, Type targetResponseType, bool @default)
+    public IResponseParser<IUserResponse> Instance { get; }
+    
+    public ResponseParserInfo(Type parserType, Type targetResponseType, bool @default,
+        IResponseParser<IUserResponse> instance)
     {
         Default            = @default;
+        Instance           = instance;
         ParserType         = parserType;
         TargetResponseType = targetResponseType;
     }

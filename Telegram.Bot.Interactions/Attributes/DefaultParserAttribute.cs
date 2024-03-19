@@ -10,10 +10,7 @@ namespace Telegram.Bot.Interactions.Attributes;
 [AttributeUsage(AttributeTargets.Class)]
 public class DefaultParserAttribute : Attribute
 {   
-    public readonly Type ResponseType; 
-    public DefaultParserAttribute(Type responseType)
+    public DefaultParserAttribute()
     {
-        // TODO: Add IUserResponse derived class validation 
-        ResponseType = responseType;
     }
 }

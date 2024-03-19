@@ -115,6 +115,5 @@ public class LoaderTest
             } && validHandler3.SpecificContextResponseType.IsEquivalentTo(typeof(ImageResponse)), 
                 Is.True);
         });
-        ;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Telegram.Bot.Interactions.Model.Descriptors;
+using Telegram.Bot.Interactions.Utilities.Collections;
 
 namespace Telegram.Bot.Interactions.Services.Abstraction;
 
@@ -25,19 +26,12 @@ public interface ILoadedEntitiesRegistry
     /// Contains the list of loaded parsers for types,
     /// mapped to the response type.
     /// </summary>
-    IReadOnlyDictionary<Type, IReadOnlyList<ResponseParserInfo>> ResponseParsers { get; }
+    IReadOnlyDictionary<Type, DefaultEntityCollection<ResponseParserInfo>> 
+        ResponseParsers { get; }
     
-    /// <summary>
-    /// Contains the list of loaded validators for types,
-    /// mapped to the response type.
-    /// </summary>
-    IReadOnlyDictionary<Type, IReadOnlyList<ResponseValidatorInfo>> ResponseValidators { get; }
-
     void RegisterInteraction(InteractionInfo interactionInfo);
     
     void RegisterInteractionModule(InteractionModuleInfo moduleInfo);
     
     void RegisterResponseParser(ResponseParserInfo parserInfo);
-    
-    void RegisterResponseValidator(ResponseValidatorInfo validatorInfo);
 }

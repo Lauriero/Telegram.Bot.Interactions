@@ -9,9 +9,9 @@ namespace Telegram.Bot.Interactions.Validators;
 /// </summary>
 [DefaultValidator(typeof(TextResponse))]
 [DefaultValidator(typeof(ImageResponse))]
-public class NullResponseValidator : IResponseValidator<IUserResponse>
+public class NullResponseValidator : ResponseValidator<IUserResponse>
 {
-    public ValueTask<bool> ValidateResponseAsync(IUserResponse response, IResponseModelConfig<IUserResponse> config)
+    public override ValueTask<bool> ValidateAsync(IUserResponse response)
     {
         return ValueTask.FromResult(true);
     }

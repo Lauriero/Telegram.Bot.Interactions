@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
+using Telegram.Bot.Interactions.Validators;
+
 namespace Telegram.Bot.Interactions.Model.Responses.Abstraction;
 
 /// <summary>
@@ -42,4 +44,9 @@ public interface IResponseModel<out TResponse>
     /// Is loaded when the response model is processed by the interaction service.
     /// </summary>
     public Type? ResponseParserType { get; }
+    
+    /// <summary>
+    /// If set, will be used to validate the response.
+    /// </summary>
+    public IResponseValidator<TResponse>? ResponseValidator { get; }
 }

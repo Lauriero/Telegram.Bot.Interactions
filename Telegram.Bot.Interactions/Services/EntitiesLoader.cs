@@ -72,17 +72,9 @@ public class EntitiesLoader : IEntitiesLoader
             _lock.Release();
         }
     }
-
-    public Task<GenericLoadingResult<ResponseValidatorInfo>> 
-        LoadResponseValidatorAsync<TResponse, TValidator>(IServiceProvider? serviceProvider = null)
-            where TResponse : class, IUserResponse, new()
-            where TValidator : IResponseValidator<TResponse>
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<GenericMultipleLoadingResult<ResponseValidatorInfo>> 
-        LoadResponseParserAsync<TResponse, TParser>(IServiceProvider? serviceProvider = null)
+    
+    public Task<GenericLoadingResult<ResponseParserInfo>> 
+        LoadResponseParserAsync<TResponse, TParser>()
             where TResponse : class, IUserResponse, new()
             where TParser : IResponseParser<TResponse>
     {

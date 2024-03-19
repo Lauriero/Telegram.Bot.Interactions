@@ -1,12 +1,14 @@
-﻿using Telegram.Bot.Interactions.Model.Responses.Abstraction;
+﻿using MorseCode.ITask;
+
+using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Types;
 
 namespace Telegram.Bot.Interactions.Parsers;
 
-public interface IResponseParser<TResponse>
-    where TResponse : class, IUserResponse, new()
+public interface IResponseParser<out TResponse>
+    where TResponse : IUserResponse
 {
-    public bool CanParse(Message message);
+    public bool CanParse(Message telegramMessage);
     
-    public ValueTask<TResponse?> ParseResponseAsync(Message telegramMessage);
+    public ITask<TResponse> ParseResponseAsync(Message telegramMessage);
 }

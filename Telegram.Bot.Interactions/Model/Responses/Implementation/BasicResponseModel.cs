@@ -1,16 +1,13 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 using Telegram.Bot.Interactions.Model.Responses.Abstraction;
+using Telegram.Bot.Interactions.Validators;
 
 namespace Telegram.Bot.Interactions.Model.Responses.Implementation;
 
-/// <summary>
-/// Basic response model that uses response type,
-/// provided in <typeparamref name="TResponse"/>
-/// to determine valid response parameters.
-/// </summary>
+/// <inheritdoc />
 public class BasicResponseModel<TResponse> : IResponseModel<TResponse>
-    where TResponse : class, IUserResponse, new()
+    where TResponse : IUserResponse
 {
     /// <inheritdoc />
     public string Key { get; }
@@ -25,14 +22,21 @@ public class BasicResponseModel<TResponse> : IResponseModel<TResponse>
 
     /// <inheritdoc />
     public TResponse? Response { get; internal set; }
-
+    
     /// <inheritdoc />
     public Type? ResponseParserType { get; }
 
-    public BasicResponseModel(string key, Type? responseParserType)
+    /// <inheritdoc />
+    public IResponseValidator<TResponse>? ResponseValidator { get; }
+    
+    internal BasicResponseModel(string key, Type? responseParserType, 
+        IResponseValidator<TResponse>? responseValidator)
     {
-        Key = key;
-        Responded = false;
+        // TODO: Validate parser type
+
+        Key                = key;
+        Responded          = false;
+        ResponseValidator  = responseValidator;
         ResponseParserType = responseParserType;
     }
 }
