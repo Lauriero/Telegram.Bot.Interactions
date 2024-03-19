@@ -1,7 +1,8 @@
-﻿using System.Collections;
-using System.Net.Mime;
-using System.Reflection;
+﻿using System.Reflection;
 
+using Microsoft.Extensions.DependencyInjection;
+
+using Telegram.Bot.Interactions.Exceptions.Modules;
 using Telegram.Bot.Interactions.Model.Descriptors;
 using Telegram.Bot.Interactions.Model.Descriptors.Config;
 using Telegram.Bot.Interactions.Model.Descriptors.Loading;
@@ -12,6 +13,7 @@ using Telegram.Bot.Interactions.Tests.Environment;
 using Telegram.Bot.Interactions.Tests.Environment.InteractionModules;
 using Telegram.Bot.Interactions.Tests.Environment.Parsers;
 using Telegram.Bot.Interactions.Tests.Environment.Parsers.Generic;
+using Telegram.Bot.Interactions.Tests.Environment.Services;
 using Telegram.Bot.Interactions.Utilities.Collections;
 
 namespace Telegram.Bot.Interactions.Tests.InteractionModules;
@@ -19,6 +21,7 @@ namespace Telegram.Bot.Interactions.Tests.InteractionModules;
 [Order(1)]
 public class LoaderTest
 {
+    private IInteractionService _interactionService = null!;
     private Assembly _environmentAssembly = null!;
 
     private static string[] _basicModuleInvalidHandlerNames = {
@@ -64,6 +67,7 @@ public class LoaderTest
     [SetUp]
     public void Setup()
     {
+         _interactionService = new InteractionService();
         _environmentAssembly 
             = Assembly.GetAssembly(typeof(TestInteraction)) 
               ?? throw new InvalidOperationException("Test environment assembly " +
@@ -111,11 +115,13 @@ public class LoaderTest
         GenericMultipleLoadingResult<ResponseParserInfo> loadingResult = 
             service.Loader.LoadResponseParsers(_environmentAssembly);
         
-        IEnumerable<string> failedParserNames = loadingResult.Entities
+        Assert.That(loadingResult.Loaded, Is.True);
+        
+        IEnumerable<string> failedParserNames = loadingResult.Entities!
             .Where(e => !e.Loaded)
             .Select(e => e.EntityName);
         
-        IEnumerable<string> loadedParserNames = loadingResult.Entities
+        IEnumerable<string> loadedParserNames = loadingResult.Entities!
              .Where(e => e.Loaded)
              .Select(e => e.EntityName);
         
@@ -134,14 +140,51 @@ public class LoaderTest
     }
 
     [Test]
-    public async Task TestModulesLoading_NoSP_NoStrict()
+    public void TestModulesLoading_NoSP_NoStrict()
     {
-        InstanceTests.Service.Config.StrictLoadingModeEnabled = false;
+        _interactionService.Config.StrictLoadingModeEnabled = false;
         
         MultipleLoadingResult<ModuleLoadingResult> loadingResult = 
-            InstanceTests.Service.Loader.LoadInteractionModules(
+            _interactionService.Loader.LoadInteractionModules(
                 _environmentAssembly);
+
+        TestLoadingResults(loadingResult);
+    }
+
+    [Test]
+    public void TestModulesLoading_SP_NoStrict()
+    {
+        _interactionService.Config.StrictLoadingModeEnabled = false;
+
+        IServiceProvider provider = new ServiceCollection()
+            .AddSingleton<ITestService, TestService>()
+            .AddSingleton<BasicTestInteractionModule>()
+            .BuildServiceProvider();
+
+        provider.GetRequiredService<ITestService>().Test = ITestService.TEST_VARIABLE_VALUE;
         
+        MultipleLoadingResult<ModuleLoadingResult> loadingResult = 
+            _interactionService.Loader.LoadInteractionModules(
+                _environmentAssembly, provider);
+
+        ModuleLoadingResult        basicTestModule = TestLoadingResults(loadingResult);
+        BasicTestInteractionModule moduleInstance  = (BasicTestInteractionModule)basicTestModule.Info!.Instance;
+        
+        Assert.That(moduleInstance.Service!.Test, Is.EqualTo(ITestService.TEST_VARIABLE_VALUE));
+        TestLoadingResults(loadingResult);
+    }
+
+    [Test]
+    public void TestModulesLoading_NoSP_Strict()
+    {
+        _interactionService.Config.StrictLoadingModeEnabled = true;
+        Assert.Throws<HandlerLoadingException>( () => {
+            _interactionService.Loader.LoadInteractionModules(_environmentAssembly);
+        });
+    }
+
+    private static ModuleLoadingResult TestLoadingResults(MultipleLoadingResult<ModuleLoadingResult> loadingResult)
+    {
         Assert.Multiple(() =>
         {
             Assert.That(loadingResult.Loaded, Is.True);
@@ -205,5 +248,7 @@ public class LoaderTest
             } && validHandler3.SpecificContextResponseType.IsEquivalentTo(typeof(ImageResponse)), 
                 Is.True);
         });
+
+        return basicTestModule;
     }
 }

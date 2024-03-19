@@ -16,7 +16,6 @@ using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Parsers;
 using Telegram.Bot.Interactions.Services.Abstraction;
 using Telegram.Bot.Interactions.Utilities.DependencyInjection;
-using Telegram.Bot.Interactions.Validators;
 
 namespace Telegram.Bot.Interactions.Services;
 
@@ -83,7 +82,7 @@ public class EntitiesLoader : IEntitiesLoader
             results.Add(LoadResponseParser(typeInfo, serviceProvider));
         }
 
-        return new GenericMultipleLoadingResult<ResponseParserInfo>(results);
+        return GenericMultipleLoadingResult<ResponseParserInfo>.FromSuccess(results);
     }
     
     public GenericLoadingResult<ResponseParserInfo> 
@@ -293,8 +292,8 @@ public class EntitiesLoader : IEntitiesLoader
             }
 
             bool  isAsync;
-            bool  isCancellable               = false;
-            bool  acceptsSpecificContext      = false;
+            bool  isCancellable = false;
+            bool  acceptsSpecificContext;
             Type? specificContextResponseType = null;
             
             if (methodInfo.ReturnType.IsEquivalentTo(typeof(void))) {

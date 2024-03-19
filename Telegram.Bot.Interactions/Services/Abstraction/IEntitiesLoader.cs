@@ -9,7 +9,6 @@ using Telegram.Bot.Interactions.Model.Descriptors.Loading;
 using Telegram.Bot.Interactions.Model.Descriptors.Loading.Abstraction;
 using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Parsers;
-using Telegram.Bot.Interactions.Validators;
 
 namespace Telegram.Bot.Interactions.Services.Abstraction;
 

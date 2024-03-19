@@ -1,7 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-using Telegram.Bot.Interactions.Exceptions;
-using Telegram.Bot.Interactions.Model.Responses.Abstraction;
+﻿using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Model.Responses.Implementation;
 using Telegram.Bot.Interactions.Parsers;
 using Telegram.Bot.Interactions.Validators;

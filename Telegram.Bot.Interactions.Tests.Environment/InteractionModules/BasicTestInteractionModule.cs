@@ -1,4 +1,6 @@
-﻿using Telegram.Bot.Interactions.Attributes.Modules;
+﻿using JetBrains.Annotations;
+
+using Telegram.Bot.Interactions.Attributes.Modules;
 using Telegram.Bot.Interactions.Builders;
 using Telegram.Bot.Interactions.Builders.InteractionResponses;
 using Telegram.Bot.Interactions.InteractionHandlers;
@@ -7,6 +9,7 @@ using Telegram.Bot.Interactions.Model.Context;
 using Telegram.Bot.Interactions.Model.Descriptors.Config;
 using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Model.Responses.Implementation.Types;
+using Telegram.Bot.Interactions.Tests.Environment.Services;
 
 namespace Telegram.Bot.Interactions.Tests.Environment.InteractionModules;
 
@@ -20,6 +23,20 @@ public class BasicTestInteractionModule : IInteractionModule
     public const string I2_KEY  = "test_image_2_1";
     public const string I2_KEY2 = "test_text_2_2";
     public const string I3_KEY  = "test_text_3";
+
+    public ITestService? Service { get; }
+
+    [UsedImplicitly]
+    public BasicTestInteractionModule()
+    {
+        
+    }
+    
+    [UsedImplicitly]
+    public BasicTestInteractionModule(ITestService service)
+    {
+        Service = service;
+    }
     
     public IEnumerable<IInteraction> DeclareInteractions()
     {
