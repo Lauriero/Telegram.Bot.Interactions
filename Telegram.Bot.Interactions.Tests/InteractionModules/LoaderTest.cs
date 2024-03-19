@@ -7,8 +7,12 @@ using Telegram.Bot.Interactions.Model.Descriptors.Config;
 using Telegram.Bot.Interactions.Model.Descriptors.Loading;
 using Telegram.Bot.Interactions.Model.Descriptors.Loading.Abstraction;
 using Telegram.Bot.Interactions.Model.Responses.Implementation.Types;
+using Telegram.Bot.Interactions.Parsers;
 using Telegram.Bot.Interactions.Tests.Environment;
 using Telegram.Bot.Interactions.Tests.Environment.InteractionModules;
+using Telegram.Bot.Interactions.Tests.Environment.Parsers;
+using Telegram.Bot.Interactions.Tests.Environment.Parsers.Generic;
+using Telegram.Bot.Interactions.Utilities.Collections;
 
 namespace Telegram.Bot.Interactions.Tests.InteractionModules;
 
@@ -34,6 +38,29 @@ public class LoaderTest
         nameof(BasicTestInteractionModule.ValidHandler3),
     };
 
+    private static readonly string[] _validParserNames = {
+        nameof(ValidInheritParser),
+        nameof(ValidTextParser),
+        nameof(ValidGenericParser),
+        nameof(ValidOverrideParser),
+    };
+    
+    private static readonly string[] _invalidParserNames = {
+        nameof(InvalidGenericParser),
+        nameof(TestParserBase),
+    };
+
+    private static readonly string[] _defaultTextParserNames = {
+        nameof(TextResponseParser),
+    };
+
+    private static readonly string[] _registeredTextParserNames = new[] {
+        nameof(ValidTextParser),
+        nameof(ValidInheritParser),
+        nameof(ValidGenericParser),
+        nameof(ValidOverrideParser),
+    }.Concat(_defaultTextParserNames).ToArray();
+
     [SetUp]
     public void Setup()
     {
@@ -42,11 +69,68 @@ public class LoaderTest
               ?? throw new InvalidOperationException("Test environment assembly " +
                                                      "was not found");
     }
+    
+    [Test]
+    [Order(0)]
+    public void TestDefaultLoading()
+    {
+        IInteractionService service = new InteractionService();
+
+        IReadOnlyDictionary<Type, DefaultEntityCollection<ResponseParserInfo>> parsers =
+            service.Registry.ResponseParsers;
+        
+        Assert.That(parsers.ContainsKey(typeof(TextResponse)), Is.True);
+
+        IReadOnlyList<ResponseParserInfo> textParsersCollection = parsers[typeof(TextResponse)];
+        Assert.That(textParsersCollection, Is.Not.Empty);
+
+        ResponseParserInfo? defaultTextParser = textParsersCollection.FirstOrDefault(p 
+            => p.ParserType.IsEquivalentTo(typeof(TextResponseParser)));
+        
+        Assert.Multiple(() => {
+            Assert.That(defaultTextParser, Is.Not.Null);
+            Assert.That(defaultTextParser!.Default, Is.True);
+            Assert.That(defaultTextParser.TargetResponseType.IsEquivalentTo(typeof(TextResponse)), 
+                Is.True);
+
+            Assert.That(defaultTextParser.Instance.GetType().IsEquivalentTo(typeof(TextResponseParser)));
+        });
+        
+        // Test registry
+        CollectionAssert.AreEquivalent(_defaultTextParserNames,
+            service.Registry.ResponseParsers[typeof(TextResponse)].Select(p => 
+                p.ParserType.Name));
+    }
 
     [Test]
     public void TestParsersLoading_NoSP_NoStrict()
     {
+        IInteractionService service = new InteractionService();
+        service.Config.StrictLoadingModeEnabled = false;
         
+        GenericMultipleLoadingResult<ResponseParserInfo> loadingResult = 
+            service.Loader.LoadResponseParsers(_environmentAssembly);
+        
+        IEnumerable<string> failedParserNames = loadingResult.Entities
+            .Where(e => !e.Loaded)
+            .Select(e => e.EntityName);
+        
+        IEnumerable<string> loadedParserNames = loadingResult.Entities
+             .Where(e => e.Loaded)
+             .Select(e => e.EntityName);
+        
+        CollectionAssert.AreEquivalent(_invalidParserNames, failedParserNames);
+        CollectionAssert.AreEquivalent(_validParserNames, loadedParserNames);
+
+        GenericLoadingResult<ResponseParserInfo> singleParserLoadingResult =
+            service.Loader.LoadResponseParser<TextResponse, ValidTextParser>();
+        
+        Assert.That(singleParserLoadingResult.Loaded, Is.False);
+        
+        // Test registry
+        CollectionAssert.AreEquivalent(_registeredTextParserNames,
+            service.Registry.ResponseParsers[typeof(TextResponse)].Select(p => 
+                p.ParserType.Name));
     }
 
     [Test]

@@ -80,12 +80,7 @@ public class EntitiesLoader : IEntitiesLoader
                 continue;
             }
             
-            GenericLoadingResult<ResponseParserInfo> loadingResult = LoadResponseParser(typeInfo, serviceProvider);
-            if (loadingResult.Loaded) {
-                _entitiesRegistry.RegisterResponseParser(loadingResult.Entity);
-            }
-            
-            results.Add(loadingResult);
+            results.Add(LoadResponseParser(typeInfo, serviceProvider));
         }
 
         return new GenericMultipleLoadingResult<ResponseParserInfo>(results);
@@ -157,8 +152,10 @@ public class EntitiesLoader : IEntitiesLoader
                 }
             }
 
-            return GenericLoadingResult<ResponseParserInfo>.FromSuccess(parserType.Name,
-                new ResponseParserInfo(parserType, responseType, isDefault, instance));
+            ResponseParserInfo parserInfo = new ResponseParserInfo(parserType, responseType, 
+                isDefault, instance);
+            _entitiesRegistry.RegisterResponseParser(parserInfo);
+            return GenericLoadingResult<ResponseParserInfo>.FromSuccess(parserType.Name, parserInfo);
         } catch (Exception e) {
             if (_config.StrictLoadingModeEnabled) {
                 throw;
