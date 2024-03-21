@@ -1,7 +1,7 @@
 ﻿using Telegram.Bot.Interactions.Exceptions.Interactions;
 using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 
-namespace Telegram.Bot.Interactions.Attributes.Parsers;
+namespace Telegram.Bot.Interactions.Attributes.Validators;
 
 /// <summary>
 /// Specifies that the validator can accept all the config type, as long as the type of config

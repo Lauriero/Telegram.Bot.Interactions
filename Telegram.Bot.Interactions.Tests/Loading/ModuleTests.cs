@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 using Telegram.Bot.Interactions.Exceptions.Modules;
 using Telegram.Bot.Interactions.Model.Descriptors;
@@ -8,22 +6,18 @@ using Telegram.Bot.Interactions.Model.Descriptors.Config;
 using Telegram.Bot.Interactions.Model.Descriptors.Loading;
 using Telegram.Bot.Interactions.Model.Descriptors.Loading.Abstraction;
 using Telegram.Bot.Interactions.Model.Responses.Implementation.Types;
-using Telegram.Bot.Interactions.Parsers;
+using Telegram.Bot.Interactions.Services;
 using Telegram.Bot.Interactions.Tests.Environment;
 using Telegram.Bot.Interactions.Tests.Environment.InteractionModules;
-using Telegram.Bot.Interactions.Tests.Environment.Parsers;
-using Telegram.Bot.Interactions.Tests.Environment.Parsers.Generic;
 using Telegram.Bot.Interactions.Tests.Environment.Services;
-using Telegram.Bot.Interactions.Utilities.Collections;
 
-namespace Telegram.Bot.Interactions.Tests.InteractionModules;
+namespace Telegram.Bot.Interactions.Tests.Loading;
 
 [Order(1)]
-public class LoaderTest
+[TestFixture]
+[TestOf(typeof(EntitiesLoader))]
+public class ModuleTests : BaseLoadingTests
 {
-    private IInteractionService _interactionService = null!;
-    private Assembly _environmentAssembly = null!;
-
     private static string[] _basicModuleInvalidHandlerNames = {
         nameof(BasicTestInteractionModule.NotDefinedInteractionHandler),
         nameof(BasicTestInteractionModule.InvalidReturnTypeHandler),
@@ -41,112 +35,14 @@ public class LoaderTest
         nameof(BasicTestInteractionModule.ValidHandler3),
     };
 
-    private static readonly string[] _validParserNames = {
-        nameof(ValidInheritParser),
-        nameof(ValidTextParser),
-        nameof(ValidGenericParser),
-        nameof(ValidOverrideParser),
-    };
-    
-    private static readonly string[] _invalidParserNames = {
-        nameof(InvalidGenericParser),
-        nameof(TestParserBase),
-    };
-
-    private static readonly string[] _defaultTextParserNames = {
-        nameof(TextResponseParser),
-    };
-
-    private static readonly string[] _registeredTextParserNames = new[] {
-        nameof(ValidTextParser),
-        nameof(ValidInheritParser),
-        nameof(ValidGenericParser),
-        nameof(ValidOverrideParser),
-    }.Concat(_defaultTextParserNames).ToArray();
-
-    [SetUp]
-    public void Setup()
-    {
-         _interactionService = new InteractionService();
-        _environmentAssembly 
-            = Assembly.GetAssembly(typeof(TestInteraction)) 
-              ?? throw new InvalidOperationException("Test environment assembly " +
-                                                     "was not found");
-    }
-    
-    [Test]
-    [Order(0)]
-    public void TestDefaultLoading()
-    {
-        IInteractionService service = new InteractionService();
-
-        IReadOnlyDictionary<Type, DefaultEntityCollection<ResponseParserInfo>> parsers =
-            service.Registry.ResponseParsers;
-        
-        Assert.That(parsers.ContainsKey(typeof(TextResponse)), Is.True);
-
-        IReadOnlyList<ResponseParserInfo> textParsersCollection = parsers[typeof(TextResponse)];
-        Assert.That(textParsersCollection, Is.Not.Empty);
-
-        ResponseParserInfo? defaultTextParser = textParsersCollection.FirstOrDefault(p 
-            => p.ParserType.IsEquivalentTo(typeof(TextResponseParser)));
-        
-        Assert.Multiple(() => {
-            Assert.That(defaultTextParser, Is.Not.Null);
-            Assert.That(defaultTextParser!.Default, Is.True);
-            Assert.That(defaultTextParser.TargetResponseType.IsEquivalentTo(typeof(TextResponse)), 
-                Is.True);
-
-            Assert.That(defaultTextParser.Instance.GetType().IsEquivalentTo(typeof(TextResponseParser)));
-        });
-        
-        // Test registry
-        CollectionAssert.AreEquivalent(_defaultTextParserNames,
-            service.Registry.ResponseParsers[typeof(TextResponse)].Select(p => 
-                p.ParserType.Name));
-    }
-
-    [Test]
-    public void TestParsersLoading_NoSP_NoStrict()
-    {
-        IInteractionService service = new InteractionService();
-        service.Config.StrictLoadingModeEnabled = false;
-        
-        GenericMultipleLoadingResult<ResponseParserInfo> loadingResult = 
-            service.Loader.LoadResponseParsers(_environmentAssembly);
-        
-        Assert.That(loadingResult.Loaded, Is.True);
-        
-        IEnumerable<string> failedParserNames = loadingResult.Entities!
-            .Where(e => !e.Loaded)
-            .Select(e => e.EntityName);
-        
-        IEnumerable<string> loadedParserNames = loadingResult.Entities!
-             .Where(e => e.Loaded)
-             .Select(e => e.EntityName);
-        
-        CollectionAssert.AreEquivalent(_invalidParserNames, failedParserNames);
-        CollectionAssert.AreEquivalent(_validParserNames, loadedParserNames);
-
-        GenericLoadingResult<ResponseParserInfo> singleParserLoadingResult =
-            service.Loader.LoadResponseParser<TextResponse, ValidTextParser>();
-        
-        Assert.That(singleParserLoadingResult.Loaded, Is.False);
-        
-        // Test registry
-        CollectionAssert.AreEquivalent(_registeredTextParserNames,
-            service.Registry.ResponseParsers[typeof(TextResponse)].Select(p => 
-                p.ParserType.Name));
-    }
-
     [Test]
     public void TestModulesLoading_NoSP_NoStrict()
     {
-        _interactionService.Config.StrictLoadingModeEnabled = false;
+        InteractionService.Config.StrictLoadingModeEnabled = false;
         
         MultipleLoadingResult<ModuleLoadingResult> loadingResult = 
-            _interactionService.Loader.LoadInteractionModules(
-                _environmentAssembly);
+            InteractionService.Loader.LoadInteractionModules(
+                EnvironmentAssembly);
 
         TestLoadingResults(loadingResult);
     }
@@ -154,7 +50,7 @@ public class LoaderTest
     [Test]
     public void TestModulesLoading_SP_NoStrict()
     {
-        _interactionService.Config.StrictLoadingModeEnabled = false;
+        InteractionService.Config.StrictLoadingModeEnabled = false;
 
         IServiceProvider provider = new ServiceCollection()
             .AddSingleton<ITestService, TestService>()
@@ -164,8 +60,8 @@ public class LoaderTest
         provider.GetRequiredService<ITestService>().Test = ITestService.TEST_VARIABLE_VALUE;
         
         MultipleLoadingResult<ModuleLoadingResult> loadingResult = 
-            _interactionService.Loader.LoadInteractionModules(
-                _environmentAssembly, provider);
+            InteractionService.Loader.LoadInteractionModules(
+                EnvironmentAssembly, provider);
 
         ModuleLoadingResult        basicTestModule = TestLoadingResults(loadingResult);
         BasicTestInteractionModule moduleInstance  = (BasicTestInteractionModule)basicTestModule.Info!.Instance;
@@ -177,9 +73,9 @@ public class LoaderTest
     [Test]
     public void TestModulesLoading_NoSP_Strict()
     {
-        _interactionService.Config.StrictLoadingModeEnabled = true;
+        InteractionService.Config.StrictLoadingModeEnabled = true;
         Assert.Throws<HandlerLoadingException>( () => {
-            _interactionService.Loader.LoadInteractionModules(_environmentAssembly);
+            InteractionService.Loader.LoadInteractionModules(EnvironmentAssembly);
         });
     }
 

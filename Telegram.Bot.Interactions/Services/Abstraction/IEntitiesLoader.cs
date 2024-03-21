@@ -9,6 +9,7 @@ using Telegram.Bot.Interactions.Model.Descriptors.Loading;
 using Telegram.Bot.Interactions.Model.Descriptors.Loading.Abstraction;
 using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Parsers;
+using Telegram.Bot.Interactions.Validators;
 
 namespace Telegram.Bot.Interactions.Services.Abstraction;
 
@@ -67,4 +68,16 @@ public interface IEntitiesLoader
         LoadResponseParser<TResponse, TParser>(IServiceProvider? serviceProvider = null)
         where TResponse : class, IUserResponse, new()
         where TParser : IResponseParser<TResponse>;
+
+    public GenericMultipleLoadingResult<ResponseValidatorInfo> LoadResponseValidators(
+        Assembly validatorsAssembly,
+        IServiceProvider? serviceProvider = null);
+
+    public GenericLoadingResult<ResponseValidatorInfo> LoadResponseValidator<TResponse, TValidator>(
+        IServiceProvider? serviceProvider = null)
+        where TResponse : IUserResponse
+        where TValidator : IResponseValidator<TResponse>;
+
+    public GenericLoadingResult<ResponseValidatorInfo> LoadResponseValidator(Type validatorType,
+        IServiceProvider? serviceProvider = null);
 }

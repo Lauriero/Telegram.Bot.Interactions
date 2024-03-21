@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 
 using Telegram.Bot.Interactions.Attributes.Modules;
 using Telegram.Bot.Interactions.Attributes.Parsers;
+using Telegram.Bot.Interactions.Attributes.Validators;
 using Telegram.Bot.Interactions.Exceptions.Modules;
 using Telegram.Bot.Interactions.InteractionHandlers;
 using Telegram.Bot.Interactions.Model;
@@ -173,7 +174,8 @@ public class EntitiesLoader : IEntitiesLoader
         List<GenericLoadingResult<ResponseValidatorInfo>> results = new();
         foreach (TypeInfo typeInfo in validatorsAssembly.DefinedTypes) {
             if (!typeof(IResponseValidator<IUserResponse>).IsAssignableFrom(typeInfo) 
-                || typeof(IResponseValidator<>).IsEquivalentTo(typeInfo)) {
+                || typeof(IResponseValidator<>).IsEquivalentTo(typeInfo) 
+                || typeof(ResponseValidator<>).IsEquivalentTo(typeInfo)) {
                 continue;
             }
             
@@ -197,9 +199,7 @@ public class EntitiesLoader : IEntitiesLoader
         serviceProvider ??= new EmptyServiceProvider();
 
         try {
-            if (!typeof(IResponseValidator<IUserResponse>).IsAssignableFrom(validatorType) 
-                || typeof(IResponseValidator<>).IsEquivalentTo(validatorType)) {
-            
+            if (!typeof(IResponseValidator<IUserResponse>).IsAssignableFrom(validatorType)) {
                 ValidatorLoadingException exception = new ValidatorLoadingException(validatorType,
                     "Attempt to load the type that doesn't implement IResponseValidator as a " +
                     "response validator");
@@ -241,12 +241,12 @@ public class EntitiesLoader : IEntitiesLoader
             }
         
             Type responseType = validatorType
-                                .GetInterfaces()
-                                .First(i => 
-                                    i.IsGenericType &&
-                                    i.GetGenericTypeDefinition()
-                                     .IsEquivalentTo(typeof(IResponseValidator<>)))
-                                .GenericTypeArguments[0];
+                .GetInterfaces()
+                .First(i => 
+                    i.IsGenericType &&
+                    i.GetGenericTypeDefinition()
+                     .IsEquivalentTo(typeof(IResponseValidator<>)))
+                .GenericTypeArguments[0];
 
             List<Type> availableConfigTypes = new List<Type>();
             if (validatorType.GetCustomAttribute<ConfigurableWithAnyAttribute>() is not null) {
@@ -254,7 +254,7 @@ public class EntitiesLoader : IEntitiesLoader
             }
 
             if (validatorType.GetCustomAttribute<ConfigurableWithAnyOfMyTypeAttribute>() is not null) {
-                availableConfigTypes.Add(typeof(IResponseValidator<>).MakeGenericType(responseType));
+                availableConfigTypes.Add(typeof(IResponseModelConfig<>).MakeGenericType(responseType));
             }
 
             foreach (ConfigurableWithAttribute configurableWith in validatorType

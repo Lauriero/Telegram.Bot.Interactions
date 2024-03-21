@@ -4,4 +4,5 @@ public enum ResponseType
 {
     Text,
     Image,
+    Other,
 }

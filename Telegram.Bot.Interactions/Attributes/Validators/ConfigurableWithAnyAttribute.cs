@@ -1,4 +1,4 @@
-﻿namespace Telegram.Bot.Interactions.Attributes.Parsers;
+﻿namespace Telegram.Bot.Interactions.Attributes.Validators;
 
 /// <summary>
 /// Specifies that the validator can accept any config.

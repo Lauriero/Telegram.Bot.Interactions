@@ -16,41 +16,39 @@ namespace Telegram.Bot.Interactions;
 public class InteractionService : IInteractionService
 {
     /// <inheritdoc />
-    public ILogger<IInteractionService> Logger { get; private set; }
-    
-    /// <inheritdoc />
     public IEntitiesLoader Loader { get; private set; }
     
     /// <inheritdoc />
     public ILoadedEntitiesRegistry Registry { get; private set; }
 
     public IConfigurationService Config { get; private set; }
-
+    
+    private ILogger<InteractionService> _logger;
     public InteractionService()
     {
         InternalInit();
     }
     
     [UsedImplicitly]
-    public InteractionService(ILogger<IInteractionService> logger, IEntitiesLoader loader, 
+    public InteractionService(ILogger<InteractionService> logger, IEntitiesLoader loader, 
         ILoadedEntitiesRegistry registry, IConfigurationService config)
     {
         InternalInit(logger, loader, registry, config);
     }
 
-    [MemberNotNull(nameof(Logger))]
     [MemberNotNull(nameof(Loader))]
     [MemberNotNull(nameof(Registry))]
     [MemberNotNull(nameof(Config))]
-    private void InternalInit(ILogger<IInteractionService>? logger = null,
+    [MemberNotNull(nameof(_logger))]
+    private void InternalInit(ILogger<InteractionService>? logger = null,
         IEntitiesLoader? loader = null, ILoadedEntitiesRegistry? registry = null,
         IConfigurationService? config = null)
     {
         IServiceProvider provider = DefaultServiceProvider.BuildDefaultServiceProvider();
 
-        Logger   = logger   ?? provider.GetRequiredService<ILogger<InteractionService>>();
-        Registry = registry ?? provider.GetRequiredService<ILoadedEntitiesRegistry>();
         Config   = config   ?? provider.GetRequiredService<IConfigurationService>(); 
+        _logger  = logger   ?? provider.GetRequiredService<ILogger<InteractionService>>();
+        Registry = registry ?? provider.GetRequiredService<ILoadedEntitiesRegistry>();
         
         Loader = loader ?? provider.GetRequiredService<IEntitiesLoader>();
         if (Loader is EntitiesLoader defaultLoader) {
@@ -60,6 +58,7 @@ public class InteractionService : IInteractionService
         bool strictTemp = Config.StrictLoadingModeEnabled;
         Config.StrictLoadingModeEnabled = true;
         Loader.LoadResponseParsers(Assembly.GetAssembly(typeof(InteractionService))!);
+        Loader.LoadResponseValidators(Assembly.GetAssembly(typeof(InteractionService))!);
         Config.StrictLoadingModeEnabled = strictTemp;
     }
 }
