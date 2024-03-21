@@ -6,8 +6,7 @@ using Telegram.Bot.Interactions.Validators.Configs;
 namespace Telegram.Bot.Interactions.Validators;
 
 /// <summary>
-/// Validates the response using the config provided by the
-/// <see cref="BasicResponseModel{TResponse}.Config"/> in the response model.
+/// Validates the response.
 /// </summary>
 /// <remarks>
 /// This interface provides generic type unsafe methods and to implement

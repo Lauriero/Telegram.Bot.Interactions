@@ -9,20 +9,34 @@ namespace Telegram.Bot.Interactions.Model.Descriptors.Loading.Abstraction;
 public class GenericMultipleLoadingResult<TEntity> : ILoadingResult
     where TEntity : class
 {
-    public bool Loaded => Entities.Count == 0 || Entities.All(e => e.Loaded);
+    public bool Loaded { get; }
     
     public Exception? LoadingException { get; }
 
     /// <summary>
     /// List of the entities that should have been loaded.
     /// </summary>
-    public IReadOnlyList<GenericLoadingResult<TEntity>> Entities { get; } 
+    public IReadOnlyList<GenericLoadingResult<TEntity>>? Entities { get; } 
         
-    public GenericMultipleLoadingResult(IList<GenericLoadingResult<TEntity>> entities, 
+    private GenericMultipleLoadingResult(bool loaded, IList<GenericLoadingResult<TEntity>>? entities = null, 
         Exception? loadingException = null)
     {
-        Entities         = new ReadOnlyCollection<GenericLoadingResult<TEntity>>(entities);
+        Loaded           = loaded;
         LoadingException = loadingException;
+
+        if (entities is not null) {
+            Entities = new ReadOnlyCollection<GenericLoadingResult<TEntity>>(entities);
+        }
     }
-    
+
+    public static GenericMultipleLoadingResult<TEntity> FromSuccess(
+        IList<GenericLoadingResult<TEntity>> results)
+    {
+        return new GenericMultipleLoadingResult<TEntity>(true, results);
+    }
+
+    public static GenericMultipleLoadingResult<TEntity> FromFailure(Exception exception)
+    {
+        return new GenericMultipleLoadingResult<TEntity>(false, loadingException: exception);
+    }
 }

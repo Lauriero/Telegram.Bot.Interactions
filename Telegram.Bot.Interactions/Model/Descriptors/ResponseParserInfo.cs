@@ -1,4 +1,4 @@
-﻿using Telegram.Bot.Interactions.Model.Responses.Abstraction;
+using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Parsers;
 using Telegram.Bot.Interactions.Utilities.Collections;
 
