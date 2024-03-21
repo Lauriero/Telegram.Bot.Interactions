@@ -12,7 +12,7 @@ namespace Telegram.Bot.Interactions.Attributes.Parsers;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class ConfigurableWithAttribute : Attribute
 {
-    public Type? ConfigType { get; }
+    public Type ConfigType { get; }
     
-    public ConfigurableWithAttribute(Type? configType) { ConfigType = configType; }
+    public ConfigurableWithAttribute(Type configType) { ConfigType = configType; }
 }

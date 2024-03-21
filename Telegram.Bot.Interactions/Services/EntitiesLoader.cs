@@ -16,6 +16,8 @@ using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Parsers;
 using Telegram.Bot.Interactions.Services.Abstraction;
 using Telegram.Bot.Interactions.Utilities.DependencyInjection;
+using Telegram.Bot.Interactions.Validators;
+using Telegram.Bot.Interactions.Validators.Configs;
 
 namespace Telegram.Bot.Interactions.Services;
 
@@ -178,21 +180,120 @@ public class EntitiesLoader : IEntitiesLoader
             results.Add(LoadResponseValidator(typeInfo, serviceProvider));
         }
 
-        return new GenericMultipleLoadingResult<ResponseValidatorInfo>(results);
+        return GenericMultipleLoadingResult<ResponseValidatorInfo>.FromSuccess(results);
     }
 
     public GenericLoadingResult<ResponseValidatorInfo> LoadResponseValidator<TResponse, TValidator>(
-        IServiceProvider? _serviceProvider = null)
+        IServiceProvider? serviceProvider = null)
         where TResponse  : IUserResponse
         where TValidator : IResponseValidator<TResponse>
     {
-        return LoadResponseValidator(typeof(TValidator));
+        return LoadResponseValidator(typeof(TValidator), serviceProvider);
     }
     
     public GenericLoadingResult<ResponseValidatorInfo> LoadResponseValidator(Type validatorType,
-        IServiceProvider? _serviceProvider = null)
+        IServiceProvider? serviceProvider = null)
     {
-        throw new NotImplementedException();
+        serviceProvider ??= new EmptyServiceProvider();
+
+        try {
+            if (!typeof(IResponseValidator<IUserResponse>).IsAssignableFrom(validatorType) 
+                || typeof(IResponseValidator<>).IsEquivalentTo(validatorType)) {
+            
+                ValidatorLoadingException exception = new ValidatorLoadingException(validatorType,
+                    "Attempt to load the type that doesn't implement IResponseValidator as a " +
+                    "response validator");
+
+                HandleSoftLoadingException(exception);
+                return GenericLoadingResult<ResponseValidatorInfo>.FromFailure(validatorType.Name, exception);
+            }
+
+            if (!IsValidValidatorDefinition(validatorType)) {
+                ValidatorLoadingException exception = new ValidatorLoadingException(validatorType,
+                    "Validator definition should be a non-abstract public class, " +
+                    "but found class does not fit in these constrains");
+            
+                HandleSoftLoadingException(exception);
+                return GenericLoadingResult<ResponseValidatorInfo>.FromFailure(validatorType.Name, exception);
+            }
+        
+            bool useSP = serviceProvider.GetService(validatorType) is not null;
+            if (!useSP) {
+                if (!validatorType.GetConstructors().Any(c => c.IsPublic 
+                                                              && c.GetParameters().Length == 0)) {
+                    ValidatorLoadingException exception = new ValidatorLoadingException(validatorType,
+                        "The validator should be either added to service provider's collection " +
+                        "or should have a parameterless constructor in order to instantiate it");
+
+                    HandleSoftLoadingException(exception);
+                    return GenericLoadingResult<ResponseValidatorInfo>.FromFailure(validatorType.Name,
+                        exception);
+                }
+
+                try {
+                    Activator.CreateInstance(validatorType);
+                } catch (Exception e) {
+                    ValidatorLoadingException exception = new ValidatorLoadingException(validatorType, e.Message);
+                    HandleSoftLoadingException(exception);
+                    return GenericLoadingResult<ResponseValidatorInfo>.FromFailure(validatorType.Name,
+                        exception);
+                }
+            }
+        
+            Type responseType = validatorType
+                                .GetInterfaces()
+                                .First(i => 
+                                    i.IsGenericType &&
+                                    i.GetGenericTypeDefinition()
+                                     .IsEquivalentTo(typeof(IResponseValidator<>)))
+                                .GenericTypeArguments[0];
+
+            List<Type> availableConfigTypes = new List<Type>();
+            if (validatorType.GetCustomAttribute<ConfigurableWithAnyAttribute>() is not null) {
+                availableConfigTypes.Add(typeof(IResponseModelConfig<IUserResponse>));
+            }
+
+            if (validatorType.GetCustomAttribute<ConfigurableWithAnyOfMyTypeAttribute>() is not null) {
+                availableConfigTypes.Add(typeof(IResponseValidator<>).MakeGenericType(responseType));
+            }
+
+            foreach (ConfigurableWithAttribute configurableWith in validatorType
+                         .GetCustomAttributes<ConfigurableWithAttribute>()) {
+
+                Type configType = configurableWith.ConfigType;
+                if (!typeof(IResponseModelConfig<IUserResponse>).IsAssignableFrom(configType)) {
+                    ValidatorLoadingException exception = new ValidatorLoadingException(validatorType,
+                        "One of the ConfigurableWith attributes declared that this validator "             +
+                        $"should accept the config of type {configType.Name} but this config type is not " +
+                        $"assignable to IResponseModelConfig<IUserResponse> and thus, can't be used as "   +
+                        $"a valid configuration type");
+
+                    HandleSoftLoadingException(exception);
+                    return GenericLoadingResult<ResponseValidatorInfo>.FromFailure(validatorType.Name,
+                        exception);
+                }
+            
+                availableConfigTypes.Add(configType);
+            }
+
+            ResponseValidatorInfo info;
+            if (useSP) {
+                info = ResponseValidatorInfo.WithSP(validatorType, responseType, availableConfigTypes, 
+                    serviceProvider);
+            } else {
+                info = ResponseValidatorInfo.WithNoSP(validatorType, responseType, availableConfigTypes);
+            }
+        
+            _entitiesRegistry.RegisterValidator(info);
+            return GenericLoadingResult<ResponseValidatorInfo>.FromSuccess(validatorType.Name, info);
+        } catch (Exception e) {
+            if (_config.StrictLoadingModeEnabled) {
+                throw;
+            }
+            
+            _logger.LogWarning(e, $"Exception occurred when loading the parser {validatorType.Name}");
+            return GenericLoadingResult<ResponseValidatorInfo>.FromFailure(validatorType.Name, e);
+        }
     }
     
     /// <summary>
