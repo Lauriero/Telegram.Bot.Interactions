@@ -1,10 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-using Telegram.Bot.Interactions.Exceptions;
-using Telegram.Bot.Interactions.Model.Responses.Abstraction;
+﻿using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Model.Responses.Implementation;
 using Telegram.Bot.Interactions.Parsers;
 using Telegram.Bot.Interactions.Validators;
+using Telegram.Bot.Interactions.Validators.Configs;
 
 namespace Telegram.Bot.Interactions.Builders.InteractionResponses;
 
@@ -14,8 +12,10 @@ namespace Telegram.Bot.Interactions.Builders.InteractionResponses;
 public class BasicResponseModelBuilder<TResponse> : IResponseModelBuilder<TResponse>
     where TResponse : class, IUserResponse, new()
 {
-    private readonly string _key;
     private Type? _parserType;
+    private Type? _validatorType;
+    private readonly string _key;
+    private IResponseModelConfig<TResponse>? _config;
     private IResponseValidator<TResponse>? _validator;
     
     protected BasicResponseModelBuilder(string key)
@@ -48,18 +48,36 @@ public class BasicResponseModelBuilder<TResponse> : IResponseModelBuilder<TRespo
     }
     
     /// <summary>
-    /// Sets the built response validator to the specified value.
+    /// Sets the <see cref="IResponseModel{TResponse}.ResponseValidator"/>
+    /// to the specified value.
     /// </summary>
-    /// <param name="validatorType">
-    /// Should implement <see cref="IResponseValidator{TResponse}"/>
-    /// with the <see cref="TResponse"/> type parameter.
-    /// </param>
     public BasicResponseModelBuilder<TResponse> WithValidator(
         IResponseValidator<TResponse> validator)
     {
         _validator = validator;
         return this;
-    } 
+    }
+
+    /// <summary>
+    /// Sets the <see cref="IResponseModel{TResponse}.ResponseValidatorType"/>.
+    /// </summary>
+    public BasicResponseModelBuilder<TResponse> WithValidator<TValidator>()
+        where TValidator : IResponseValidator<TResponse>
+    {
+        _validatorType = typeof(TValidator);
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the <see cref="IResponseModel{TResponse}.Config"/>.
+    /// </summary>
+    /// <param name="config"></param>
+    /// <returns></returns>
+    public BasicResponseModelBuilder<TResponse> WithConfig(IResponseModelConfig<TResponse> config)
+    {
+        _config = config;
+        return this;
+    }
 
 
     /// <summary>
@@ -67,6 +85,8 @@ public class BasicResponseModelBuilder<TResponse> : IResponseModelBuilder<TRespo
     /// </summary>
     public IResponseModel<TResponse> Build()
     {
-        return new BasicResponseModel<TResponse>(_key, _parserType, _validator);
+        return _validatorType is not null 
+            ? new BasicResponseModel<TResponse>(_key, _parserType, _validatorType, _config) 
+            : new BasicResponseModel<TResponse>(_key, _parserType, _validator);
     }
 }

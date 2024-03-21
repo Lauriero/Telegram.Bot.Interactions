@@ -1,5 +1,6 @@
 ﻿using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Validators;
+using Telegram.Bot.Interactions.Validators.Configs;
 
 namespace Telegram.Bot.Interactions.Exceptions.Interactions;
 

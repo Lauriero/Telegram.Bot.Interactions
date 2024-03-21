@@ -1,7 +1,4 @@
-﻿using Telegram.Bot.Interactions.Model.Descriptors;
-using Telegram.Bot.Interactions.Model.Responses.Implementation.Types;
-using Telegram.Bot.Interactions.Parsers;
-using Telegram.Bot.Interactions.Utilities.Collections;
+﻿using Telegram.Bot.Interactions.Parsers;
 
 namespace Telegram.Bot.Interactions.Tests;
 

@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 
-using Telegram.Bot.Interactions.Model.Data;
 using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 
 namespace Telegram.Bot.Interactions.Model;

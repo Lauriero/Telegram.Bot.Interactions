@@ -3,8 +3,8 @@ using System.Reflection;
 
 using Microsoft.Extensions.Logging;
 
-using Telegram.Bot.Interactions.Attributes;
 using Telegram.Bot.Interactions.Attributes.Modules;
+using Telegram.Bot.Interactions.Attributes.Parsers;
 using Telegram.Bot.Interactions.Exceptions.Modules;
 using Telegram.Bot.Interactions.InteractionHandlers;
 using Telegram.Bot.Interactions.Model;
@@ -163,6 +163,37 @@ public class EntitiesLoader : IEntitiesLoader
             
             return GenericLoadingResult<ResponseParserInfo>.FromFailure(parserType.Name, e);
         }
+    }
+
+    public GenericMultipleLoadingResult<ResponseValidatorInfo> LoadResponseValidators(
+        Assembly validatorsAssembly, IServiceProvider? serviceProvider = null)
+    {
+        serviceProvider ??= new EmptyServiceProvider();
+        List<GenericLoadingResult<ResponseValidatorInfo>> results = new();
+        foreach (TypeInfo typeInfo in validatorsAssembly.DefinedTypes) {
+            if (!typeof(IResponseValidator<IUserResponse>).IsAssignableFrom(typeInfo) 
+                || typeof(IResponseValidator<>).IsEquivalentTo(typeInfo)) {
+                continue;
+            }
+            
+            results.Add(LoadResponseValidator(typeInfo, serviceProvider));
+        }
+
+        return new GenericMultipleLoadingResult<ResponseValidatorInfo>(results);
+    }
+
+    public GenericLoadingResult<ResponseValidatorInfo> LoadResponseValidator<TResponse, TValidator>(
+        IServiceProvider? _serviceProvider = null)
+        where TResponse  : IUserResponse
+        where TValidator : IResponseValidator<TResponse>
+    {
+        return LoadResponseValidator(typeof(TValidator));
+    }
+    
+    public GenericLoadingResult<ResponseValidatorInfo> LoadResponseValidator(Type validatorType,
+        IServiceProvider? _serviceProvider = null)
+    {
+        throw new NotImplementedException();
     }
     
     /// <summary>
@@ -414,9 +445,9 @@ public class EntitiesLoader : IEntitiesLoader
     }
 
     [Pure]
-    private static bool IsValidModuleDefinition(TypeInfo typeInfo)
+    private static bool IsValidModuleDefinition(Type moduleType)
     {
-        return typeInfo is {
+        return moduleType is {
             IsPublic: true, IsClass: true, IsAbstract: false, IsNested: false,
             ContainsGenericParameters: false,
         };
@@ -438,6 +469,15 @@ public class EntitiesLoader : IEntitiesLoader
             IsPublic: true, IsClass: true, IsAbstract: false,
         };
     }
+    
+    [Pure]
+    private static bool IsValidValidatorDefinition(Type validatorType)
+    {
+        return validatorType is {
+            IsPublic: true, IsClass: true, IsAbstract: false,
+        };
+    }
+    
     
     
 }

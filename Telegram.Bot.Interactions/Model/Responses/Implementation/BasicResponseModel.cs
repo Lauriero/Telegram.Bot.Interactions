@@ -2,6 +2,7 @@
 
 using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Validators;
+using Telegram.Bot.Interactions.Validators.Configs;
 
 namespace Telegram.Bot.Interactions.Model.Responses.Implementation;
 
@@ -27,9 +28,15 @@ public class BasicResponseModel<TResponse> : IResponseModel<TResponse>
     public Type? ResponseParserType { get; }
 
     /// <inheritdoc />
+    public Type? ResponseValidatorType { get; }
+    
+    /// <inheritdoc />
+    public IResponseModelConfig<TResponse>? Config { get; }
+
+    /// <inheritdoc />
     public IResponseValidator<TResponse>? ResponseValidator { get; }
     
-    internal BasicResponseModel(string key, Type? responseParserType, 
+    public BasicResponseModel(string key, Type? responseParserType, 
         IResponseValidator<TResponse>? responseValidator)
     {
         // TODO: Validate parser type
@@ -38,5 +45,18 @@ public class BasicResponseModel<TResponse> : IResponseModel<TResponse>
         Responded          = false;
         ResponseValidator  = responseValidator;
         ResponseParserType = responseParserType;
+    }
+    
+    public BasicResponseModel(string key, Type? responseParserType, 
+        Type? validatorType, IResponseModelConfig<TResponse>? config)
+    {
+        // TODO: Validate parser type
+        // TODO: Validate validator type
+
+        Key                   = key;
+        Config                = config;
+        Responded             = false;
+        ResponseParserType    = responseParserType;
+        ResponseValidatorType = validatorType;
     }
 }

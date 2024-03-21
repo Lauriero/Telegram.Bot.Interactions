@@ -1,6 +1,6 @@
 ﻿using MorseCode.ITask;
 
-using Telegram.Bot.Interactions.Attributes;
+using Telegram.Bot.Interactions.Attributes.Parsers;
 using Telegram.Bot.Interactions.Model.Responses.Implementation.Types;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
