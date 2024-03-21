@@ -1,6 +1,7 @@
 ﻿using Telegram.Bot.Interactions.Exceptions.Interactions;
 using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Model.Responses.Implementation;
+using Telegram.Bot.Interactions.Validators.Configs;
 
 namespace Telegram.Bot.Interactions.Validators;
 
@@ -20,6 +21,13 @@ namespace Telegram.Bot.Interactions.Validators;
 public interface IResponseValidator<out TResponse>  
     where TResponse : IUserResponse
 {
+    /// <summary>
+    /// Contains a configuration that is used to validate the responses.
+    /// Is set automatically with a value from <see cref="IResponseModel{TResponse}.Config"/>
+    /// after the validator instantiation based on the <see cref="IResponseModel{TResponse}.ResponseValidatorType"/>. 
+    /// </summary>
+    public IResponseModelConfig<IUserResponse>? Config { get; set; }
+
     /// <summary>
     /// Validates the response returning the validation result.
     /// Uses configuration that has been set up in the

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 using Telegram.Bot.Interactions.Validators;
+using Telegram.Bot.Interactions.Validators.Configs;
 
 namespace Telegram.Bot.Interactions.Model.Responses.Abstraction;
 
@@ -46,7 +47,25 @@ public interface IResponseModel<out TResponse>
     public Type? ResponseParserType { get; }
     
     /// <summary>
+    /// If set, determines the implementation type of the <see cref="ResponseValidator"/>
+    /// and will be used to instantiate new instances of the validator during the loading,
+    /// configuring it automatically with <see cref="Config"/>.
+    /// If not set, the <see cref="ResponseValidator"/>, if provided, will be used instead to
+    /// validate the response, and the <see cref="Config"/> will not be used to configure
+    /// the validation process.
+    /// Should be a type derived from <see cref="IResponseValidator{TResponse}"/>.
+    /// </summary>
+    public Type? ResponseValidatorType { get; }
+    
+    /// <summary>
+    /// If set together with the <see cref="ResponseValidatorType"/>, will be injected
+    /// into instantiated <see cref="ResponseValidator"/> during the loading process.
+    /// </summary>
+    public IResponseModelConfig<TResponse>? Config { get; }
+    
+    /// <summary>
     /// If set, will be used to validate the response.
+    /// Doesn't need to be set, if <see cref="ResponseValidatorType"/> is set.
     /// </summary>
     public IResponseValidator<TResponse>? ResponseValidator { get; }
 }

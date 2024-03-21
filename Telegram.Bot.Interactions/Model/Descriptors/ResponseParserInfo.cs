@@ -1,4 +1,4 @@
-﻿using Telegram.Bot.Interactions.Model.Responses.Abstraction;
+using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Parsers;
 using Telegram.Bot.Interactions.Utilities.Collections;
 
@@ -6,7 +6,7 @@ namespace Telegram.Bot.Interactions.Model.Descriptors;
 
 /// <summary>
 /// Contains info about the response parser.
-/// Gets generated when the parser is loaded into the service.
+/// Gets generated when the parser is loaded into the interactions service.
 /// </summary>
 public class ResponseParserInfo : IDefaultSettableEntity
 {

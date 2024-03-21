@@ -1,4 +1,4 @@
-﻿namespace Telegram.Bot.Interactions.Tests;
+namespace Telegram.Bot.Interactions.Tests;
 
 [Order(0)]
 public class InstanceTests

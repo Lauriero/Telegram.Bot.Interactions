@@ -15,22 +15,27 @@ public class LoadedEntitiesRegistry : ILoadedEntitiesRegistry
     public IReadOnlyDictionary<Type, DefaultEntityCollection<ResponseParserInfo>> 
         ResponseParsers { get; }
 
+    public IReadOnlyDictionary<Type, ResponseValidatorInfo> ResponseValidators { get; }
+
     private readonly ConcurrentDictionary<int, InteractionInfo> _interactions;
     private readonly ConcurrentDictionary<Type, InteractionModuleInfo> _interactionModules;
     private readonly ConcurrentDictionary<Type, DefaultEntityCollection<ResponseParserInfo>> _responseParsers;
-
+    private readonly ConcurrentDictionary<Type, ResponseValidatorInfo> _responseValidators;
+    
     private readonly ConcurrentDictionary<Type, List<ResponseParserInfo>> _responseParsersInternal;
     
     public LoadedEntitiesRegistry()
     {
-        _interactions       = new ConcurrentDictionary<int, InteractionInfo>();
-        _interactionModules = new ConcurrentDictionary<Type, InteractionModuleInfo>();
-        _responseParsers    = new ConcurrentDictionary<Type, DefaultEntityCollection<ResponseParserInfo>>();
-        _responseParsersInternal    = new ConcurrentDictionary<Type, List<ResponseParserInfo>>();
+        _interactions            = new ConcurrentDictionary<int, InteractionInfo>();
+        _interactionModules      = new ConcurrentDictionary<Type, InteractionModuleInfo>();
+        _responseValidators      = new ConcurrentDictionary<Type, ResponseValidatorInfo>();
+        _responseParsers         = new ConcurrentDictionary<Type, DefaultEntityCollection<ResponseParserInfo>>();
+        _responseParsersInternal = new ConcurrentDictionary<Type, List<ResponseParserInfo>>();
         
         Interactions       = new ReadOnlyDictionary<int, InteractionInfo>(_interactions);
         InteractionModules = new ReadOnlyDictionary<Type, InteractionModuleInfo>(_interactionModules);
         ResponseParsers    = new ReadOnlyDictionary<Type, DefaultEntityCollection<ResponseParserInfo>>(_responseParsers);
+        ResponseValidators = new ReadOnlyDictionary<Type, ResponseValidatorInfo>(_responseValidators);
     }
 
     public void RegisterInteraction(InteractionInfo interactionInfo)
@@ -75,5 +80,14 @@ public class LoadedEntitiesRegistry : ILoadedEntitiesRegistry
         }
 
         storedParsers.Add(parserInfo);
+    }
+
+    public void RegisterValidator(ResponseValidatorInfo validatorInfo)
+    {
+        if (!_responseValidators.TryAdd(validatorInfo.ValidatorType, validatorInfo)) {
+            throw new EntityRegistrationException<ResponseValidatorInfo>(validatorInfo,
+                $"Info about the validator {validatorInfo.ValidatorType} is already " +
+                $"presented in the registry");
+        }
     }
 }

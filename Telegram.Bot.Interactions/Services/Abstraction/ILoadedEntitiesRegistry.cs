@@ -29,9 +29,13 @@ public interface ILoadedEntitiesRegistry
     IReadOnlyDictionary<Type, DefaultEntityCollection<ResponseParserInfo>> 
         ResponseParsers { get; }
     
+    IReadOnlyDictionary<Type, ResponseValidatorInfo> ResponseValidators { get; }
+    
     void RegisterInteraction(InteractionInfo interactionInfo);
     
     void RegisterInteractionModule(InteractionModuleInfo moduleInfo);
     
     void RegisterResponseParser(ResponseParserInfo parserInfo);
+
+    void RegisterValidator(ResponseValidatorInfo validatorInfo);
 }

@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Interactions.Services.Abstraction;
 
-namespace Telegram.Bot.Interactions.Attributes;
+namespace Telegram.Bot.Interactions.Attributes.Parsers;
 
 /// <summary>
 /// Marks the parser as the default one for the type.
