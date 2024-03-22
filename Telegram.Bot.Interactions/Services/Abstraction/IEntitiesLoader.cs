@@ -60,6 +60,8 @@ public interface IEntitiesLoader
         LoadInteractionModules(Assembly interactionsAssembly, 
             IServiceProvider? serviceProvider = null);
 
+    public GenericLoadingResult<IInteraction> LoadInteraction(IInteraction interaction);
+    
     public GenericMultipleLoadingResult<ResponseParserInfo>
         LoadResponseParsers(Assembly parsersAssembly,
             IServiceProvider? serviceProvider = null);

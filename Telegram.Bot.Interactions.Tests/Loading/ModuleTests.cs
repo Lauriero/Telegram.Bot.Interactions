@@ -79,7 +79,7 @@ public class ModuleTests : BaseLoadingTests
         });
     }
 
-    private static ModuleLoadingResult TestLoadingResults(MultipleLoadingResult<ModuleLoadingResult> loadingResult)
+    private ModuleLoadingResult TestLoadingResults(MultipleLoadingResult<ModuleLoadingResult> loadingResult)
     {
         Assert.Multiple(() =>
         {

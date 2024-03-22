@@ -39,12 +39,14 @@ public interface IResponseModel<out TResponse>
     /// and contains data about his response in this case.
     /// </summary>
     public TResponse? Response { get; }
-    
+
+    public Type ResponseType { get; }
+
     /// <summary>
     /// Specifies the type of the parser that will be used to process the response.
     /// Is loaded when the response model is processed by the interaction service.
     /// </summary>
-    public Type? ResponseParserType { get; }
+    public Type? ResponseParserType { get; set; }
     
     /// <summary>
     /// If set, determines the implementation type of the <see cref="ResponseValidator"/>

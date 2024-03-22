@@ -23,9 +23,11 @@ public class BasicResponseModel<TResponse> : IResponseModel<TResponse>
 
     /// <inheritdoc />
     public TResponse? Response { get; internal set; }
-    
+
+    public Type ResponseType { get; }
+
     /// <inheritdoc />
-    public Type? ResponseParserType { get; }
+    public Type? ResponseParserType { get; set; }
 
     /// <inheritdoc />
     public Type? ResponseValidatorType { get; }
@@ -41,8 +43,9 @@ public class BasicResponseModel<TResponse> : IResponseModel<TResponse>
     {
         // TODO: Validate parser type
 
-        Key                = key;
-        Responded          = false;
+        Key          = key;
+        Responded    = false;
+        ResponseType = typeof(TResponse);
         ResponseValidator  = responseValidator;
         ResponseParserType = responseParserType;
     }
@@ -54,9 +57,10 @@ public class BasicResponseModel<TResponse> : IResponseModel<TResponse>
         // TODO: Validate validator type
 
         Key                   = key;
-        Config                = config;
         Responded             = false;
-        ResponseParserType    = responseParserType;
+        Config                = config;
         ResponseValidatorType = validatorType;
+        ResponseType          = typeof(TResponse);
+        ResponseParserType    = responseParserType;
     }
 }

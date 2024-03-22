@@ -70,6 +70,59 @@ public class EntitiesLoader : IEntitiesLoader
         }
     }
 
+    public GenericLoadingResult<IInteraction> LoadInteraction(IInteraction interaction)
+    {
+        foreach (IResponseModel<IUserResponse> response in interaction.AvailableResponses) {
+            if (response.ResponseParserType is null) {
+                if (_entitiesRegistry.ResponseParsers.ContainsKey(response.ResponseType)) {
+                    response.ResponseParserType = _entitiesRegistry.ResponseParsers[response.ResponseType]
+                                                        .Default?.ParserType;
+                }
+                
+                if (response.ResponseParserType is null) {
+                    InteractionLoadingException exception = new InteractionLoadingException(interaction,
+                        $"Interaction contains invalid response with the key {response.Key}, " +
+                        $"that declared no parser type, but there are no registered parsers "      +
+                        $"registered to handle response of that type");
+        
+                    HandleSoftLoadingException(exception);
+                    return GenericLoadingResult<IInteraction>.FromFailure(
+                        $"{interaction.Id} - {response.Key}", exception);
+                }
+                
+                _logger.LogInformation("The response with the key {responseKey} of the "         +
+                   "interaction with id {interactionId} will use a parser of type {parserType} " +
+                   "that had been assigned to it by default", response.Key, 
+                    interaction.Id, response.ResponseParserType);
+            } else if (!_entitiesRegistry.ResponseParsers.ContainsKey(response.ResponseType)
+                       || _entitiesRegistry.ResponseParsers[response.ResponseType]
+                            .All(p => p.ParserType != response.ResponseParserType))  {
+                InteractionLoadingException exception = new InteractionLoadingException(interaction,
+                    $"Interaction contains invalid response with the key {response.Key}, "      +
+                    $"that declared a parser type {response.ResponseParserType}, that has not " +
+                    $"been registered");
+        
+                HandleSoftLoadingException(exception);
+                return GenericLoadingResult<IInteraction>.FromFailure(
+                    $"{interaction.Id} - {response.Key}", exception);
+            }
+            
+            if (response.ResponseValidatorType is not null &&
+                !_entitiesRegistry.ResponseValidators.ContainsKey(response.ResponseValidatorType)) {
+                InteractionLoadingException exception = new InteractionLoadingException(interaction,
+                    $"Interaction contains invalid response with the key {response.Key}, " +
+                    $"that declared {response.ResponseValidatorType} as a validator "      +
+                    $"but this validator has not been registered");
+            
+                return GenericLoadingResult<IInteraction>.FromFailure(
+                    $"{interaction.Id} - {response.Key}", exception);
+            }
+        }
+        
+        _entitiesRegistry.RegisterInteraction(new InteractionInfo(interaction, null));
+        return GenericLoadingResult<IInteraction>.FromSuccess($"{interaction.Id}", interaction);
+    }
+
     public GenericMultipleLoadingResult<ResponseParserInfo>
         LoadResponseParsers(Assembly parsersAssembly, 
             IServiceProvider? serviceProvider = null)
@@ -264,9 +317,9 @@ public class EntitiesLoader : IEntitiesLoader
                 if (!typeof(IResponseModelConfig<IUserResponse>).IsAssignableFrom(configType)) {
                     ValidatorLoadingException exception = new ValidatorLoadingException(validatorType,
                         "One of the ConfigurableWith attributes declared that this validator "             +
-                        $"should accept the config of type {configType.Name} but this config type is not " +
-                        $"assignable to IResponseModelConfig<IUserResponse> and thus, can't be used as "   +
-                        $"a valid configuration type");
+                        "should accept the config of type {configType.Name} but this config type is not " +
+                        "assignable to IResponseModelConfig<IUserResponse> and thus, can't be used as "   +
+                        "a valid configuration type");
 
                     HandleSoftLoadingException(exception);
                     return GenericLoadingResult<ResponseValidatorInfo>.FromFailure(validatorType.Name,
@@ -341,8 +394,9 @@ public class EntitiesLoader : IEntitiesLoader
                 }
             }
 
+            List<GenericLoadingResult<IInteraction>> interactionLoadingResults = new();
             foreach (IInteraction interaction in instance.DeclareInteractions()) {
-                _entitiesRegistry.RegisterInteraction(new InteractionInfo(interaction, null));
+                interactionLoadingResults.Add(LoadInteraction(interaction));
             }
             
             InteractionModuleInfo moduleInfo = new InteractionModuleInfo(
@@ -360,13 +414,18 @@ public class EntitiesLoader : IEntitiesLoader
             }
             
             if (handlerInfos.Count == 0) {
-                _logger.LogWarning("Module {moduleName} does not " + 
-                                   "have any interaction handlers", typeInfo.FullName);
+                ModuleLoadingException exception = new ModuleLoadingException(typeInfo,
+                    $"Module {typeInfo.FullName} does not have any interaction handlers");
+                    
+                HandleSoftLoadingException(exception);
+                results.Add(ModuleLoadingResult.FromFailure(exception, handlerInfosBuildingResult, 
+                    interactionLoadingResults));
                 continue;
             }
             
             moduleInfo.HandlerInfos.AddRange(handlerInfos);
-            results.Add(ModuleLoadingResult.FromSuccess(moduleInfo, handlerInfosBuildingResult));
+            results.Add(ModuleLoadingResult.FromSuccess(moduleInfo, handlerInfosBuildingResult,
+                interactionLoadingResults));
         }
         
         return results;
