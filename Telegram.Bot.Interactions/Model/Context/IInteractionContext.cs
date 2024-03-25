@@ -20,10 +20,10 @@ public interface IInteractionContext<out TResponse>
     IInteraction TargetInteraction { get; }
 
     /// <summary>
-    /// One of the <see cref="IInteraction.AvailableResponses"/>
-    /// that carries the <see cref="Response"/>.
+    /// Key of the valid interaction response that had been configured in order to
+    /// accept the <see cref="Response"/>. 
     /// </summary>
-    IResponseModel<TResponse> ResponseModel { get; }
+    string ResponseKey { get; }
 
     /// <summary>
     /// Contains the user's response.

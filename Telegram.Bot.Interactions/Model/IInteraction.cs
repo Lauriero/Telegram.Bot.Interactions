@@ -19,5 +19,5 @@ public interface IInteraction
     /// <summary>
     /// List of the responses that user can give or gave to an interaction.
     /// </summary>
-    IReadOnlyList<IResponseModel<IUserResponse>> AvailableResponses { get; }
+    IReadOnlyList<IResponseModel> AvailableResponses { get; }
 }

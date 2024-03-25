@@ -67,6 +67,18 @@ public class BasicResponseModelBuilder<TResponse> : IResponseModelBuilder<TRespo
         _validatorType = typeof(TValidator);
         return this;
     }
+    
+    /// <summary>
+    /// Sets the <see cref="IResponseModel{TResponse}.ResponseValidatorType"/> to the TValidator
+    /// that is generic and able to parse the responses of TVResponse. 
+    /// </summary>
+    public BasicResponseModelBuilder<TResponse> WithValidator<TVResponse, TValidator>()
+        where TVResponse : IUserResponse
+        where TValidator : IResponseValidator<TVResponse>
+    {
+        _validatorType = typeof(TValidator);
+        return this;
+    }
 
     /// <summary>
     /// Sets the <see cref="IResponseModel{TResponse}.Config"/>.
@@ -83,7 +95,7 @@ public class BasicResponseModelBuilder<TResponse> : IResponseModelBuilder<TRespo
     /// <summary>
     /// Build the response.
     /// </summary>
-    public IResponseModel<TResponse> Build()
+    public IResponseModel Build()
     {
         return _validatorType is not null 
             ? new BasicResponseModel<TResponse>(_key, _parserType, _validatorType, _config) 

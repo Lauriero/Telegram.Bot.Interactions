@@ -17,6 +17,7 @@ using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 using Telegram.Bot.Interactions.Parsers;
 using Telegram.Bot.Interactions.Services.Abstraction;
 using Telegram.Bot.Interactions.Utilities.DependencyInjection;
+using Telegram.Bot.Interactions.Utilities.Extensions;
 using Telegram.Bot.Interactions.Validators;
 using Telegram.Bot.Interactions.Validators.Configs;
 
@@ -72,7 +73,7 @@ public class EntitiesLoader : IEntitiesLoader
 
     public GenericLoadingResult<IInteraction> LoadInteraction(IInteraction interaction)
     {
-        foreach (IResponseModel<IUserResponse> response in interaction.AvailableResponses) {
+        foreach (IResponseModel response in interaction.AvailableResponses) {
             if (response.ResponseParserType is null) {
                 if (_entitiesRegistry.ResponseParsers.ContainsKey(response.ResponseType)) {
                     response.ResponseParserType = _entitiesRegistry.ResponseParsers[response.ResponseType]
@@ -226,7 +227,8 @@ public class EntitiesLoader : IEntitiesLoader
         serviceProvider ??= new EmptyServiceProvider();
         List<GenericLoadingResult<ResponseValidatorInfo>> results = new();
         foreach (TypeInfo typeInfo in validatorsAssembly.DefinedTypes) {
-            if (!typeof(IResponseValidator<IUserResponse>).IsAssignableFrom(typeInfo) 
+            
+            if (!typeInfo.IsSubclassOfRawGeneric(typeof(IResponseValidator<>)) 
                 || typeof(IResponseValidator<>).IsEquivalentTo(typeInfo) 
                 || typeof(ResponseValidator<>).IsEquivalentTo(typeInfo)) {
                 continue;
@@ -252,7 +254,7 @@ public class EntitiesLoader : IEntitiesLoader
         serviceProvider ??= new EmptyServiceProvider();
 
         try {
-            if (!typeof(IResponseValidator<IUserResponse>).IsAssignableFrom(validatorType)) {
+            if (!validatorType.IsSubclassOfRawGeneric(typeof(IResponseValidator<>))) {
                 ValidatorLoadingException exception = new ValidatorLoadingException(validatorType,
                     "Attempt to load the type that doesn't implement IResponseValidator as a " +
                     "response validator");
@@ -294,12 +296,7 @@ public class EntitiesLoader : IEntitiesLoader
             }
         
             Type responseType = validatorType
-                .GetInterfaces()
-                .First(i => 
-                    i.IsGenericType &&
-                    i.GetGenericTypeDefinition()
-                     .IsEquivalentTo(typeof(IResponseValidator<>)))
-                .GenericTypeArguments[0];
+                .GetParentGenericTypeArguments(typeof(IResponseValidator<>))![0];
 
             List<Type> availableConfigTypes = new List<Type>();
             if (validatorType.GetCustomAttribute<ConfigurableWithAnyAttribute>() is not null) {
@@ -314,7 +311,7 @@ public class EntitiesLoader : IEntitiesLoader
                          .GetCustomAttributes<ConfigurableWithAttribute>()) {
 
                 Type configType = configurableWith.ConfigType;
-                if (!typeof(IResponseModelConfig<IUserResponse>).IsAssignableFrom(configType)) {
+                if (!configType.IsSubclassOfRawGeneric(typeof(IResponseModelConfig<>))) {
                     ValidatorLoadingException exception = new ValidatorLoadingException(validatorType,
                         "One of the ConfigurableWith attributes declared that this validator "             +
                         "should accept the config of type {configType.Name} but this config type is not " +

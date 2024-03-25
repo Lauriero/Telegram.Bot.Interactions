@@ -10,7 +10,4 @@ namespace Telegram.Bot.Interactions.Attributes.Parsers;
 [AttributeUsage(AttributeTargets.Class)]
 public class DefaultParserAttribute : Attribute
 {   
-    public DefaultParserAttribute()
-    {
-    }
 }

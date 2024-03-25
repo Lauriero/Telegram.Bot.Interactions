@@ -7,7 +7,7 @@ using Telegram.Bot.Interactions.Validators.Configs;
 namespace Telegram.Bot.Interactions.Model.Responses.Implementation;
 
 /// <inheritdoc />
-public class BasicResponseModel<TResponse> : IResponseModel<TResponse>
+public class BasicResponseModel<TResponse> : IResponseModel
     where TResponse : IUserResponse
 {
     /// <inheritdoc />
@@ -22,7 +22,13 @@ public class BasicResponseModel<TResponse> : IResponseModel<TResponse>
     public bool? Valid { get; internal set; }
 
     /// <inheritdoc />
-    public TResponse? Response { get; internal set; }
+    public object? Response
+    {
+        get => TypedResponse;
+        set => TypedResponse = (TResponse?)value;
+    }
+    
+    public TResponse? TypedResponse { private get; set; }
 
     public Type ResponseType { get; }
 
@@ -31,23 +37,25 @@ public class BasicResponseModel<TResponse> : IResponseModel<TResponse>
 
     /// <inheritdoc />
     public Type? ResponseValidatorType { get; }
-    
-    /// <inheritdoc />
-    public IResponseModelConfig<TResponse>? Config { get; }
 
     /// <inheritdoc />
-    public IResponseValidator<TResponse>? ResponseValidator { get; }
+    public object? Config => TypedConfig;
+    public IResponseModelConfig<TResponse>? TypedConfig { get; }
+
+    /// <inheritdoc />
+    public object? ResponseValidator => TypedResponseValidator;
+    public IResponseValidator<TResponse>? TypedResponseValidator { get; }
     
     public BasicResponseModel(string key, Type? responseParserType, 
         IResponseValidator<TResponse>? responseValidator)
     {
         // TODO: Validate parser type
 
-        Key          = key;
-        Responded    = false;
-        ResponseType = typeof(TResponse);
-        ResponseValidator  = responseValidator;
-        ResponseParserType = responseParserType;
+        Key                    = key;
+        Responded              = false;
+        ResponseType           = typeof(TResponse);
+        ResponseParserType     = responseParserType;
+        TypedResponseValidator = responseValidator;
     }
     
     public BasicResponseModel(string key, Type? responseParserType, 
@@ -58,9 +66,9 @@ public class BasicResponseModel<TResponse> : IResponseModel<TResponse>
 
         Key                   = key;
         Responded             = false;
-        Config                = config;
-        ResponseValidatorType = validatorType;
+        TypedConfig           = config;
         ResponseType          = typeof(TResponse);
         ResponseParserType    = responseParserType;
+        ResponseValidatorType = validatorType;
     }
 }

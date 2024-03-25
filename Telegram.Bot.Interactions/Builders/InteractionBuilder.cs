@@ -27,11 +27,11 @@ public class InteractionBuilder<TInteractionEnumeration> : InteractionBuilder
 public class InteractionBuilder
 {
     private uint _id;
-    private readonly List<IResponseModel<IUserResponse>> _responses;
+    private readonly List<IResponseModel> _responses;
     protected InteractionBuilder(uint id)
     {
         _id = id;
-        _responses = new List<IResponseModel<IUserResponse>>();
+        _responses = new List<IResponseModel>();
     }
 
     /// <summary>
@@ -47,7 +47,7 @@ public class InteractionBuilder
     /// Adds the response for the built interaction.
     /// </summary>
     /// <param name="responseModel">Instance that describes the response.</param>
-    public InteractionBuilder WithResponse(IResponseModel<IUserResponse> responseModel)
+    public InteractionBuilder WithResponse(IResponseModel responseModel)
     {
         _responses.Add(responseModel);
         return this;
@@ -57,8 +57,8 @@ public class InteractionBuilder
     /// Builds and adds the response for the built interaction.
     /// </summary>
     /// <param name="responseBuilder">Instance of the response builder.</param>
-    public InteractionBuilder WithResponse(
-        IResponseModelBuilder<IUserResponse> responseBuilder)
+    public InteractionBuilder WithResponse<TResponse>(IResponseModelBuilder<TResponse> responseBuilder)
+        where TResponse : IUserResponse
     {
         _responses.Add(responseBuilder.Build());
         return this;

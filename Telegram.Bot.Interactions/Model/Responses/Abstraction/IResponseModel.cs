@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
+using Telegram.Bot.Interactions.Model.Data;
 using Telegram.Bot.Interactions.Validators;
 using Telegram.Bot.Interactions.Validators.Configs;
 
@@ -9,11 +10,7 @@ namespace Telegram.Bot.Interactions.Model.Responses.Abstraction;
 /// Describes the possible response for a specific interaction.
 /// If the response is received, contains the data of the response.
 /// </summary>
-/// <typeparam name="TResponse">
-/// The response type data this response model represents.
-/// </typeparam>
-public interface IResponseModel<out TResponse>
-    where TResponse : IUserResponse
+public interface IResponseModel
 {
     /// <summary>
     /// Is used to identify the response for the interaction.
@@ -33,15 +30,15 @@ public interface IResponseModel<out TResponse>
     /// Not set if the user hasn't responded.
     /// </summary>
     public bool? Valid { get; }
-
+    
     /// <summary>
     /// Set if the user has responded to an interaction
     /// and contains data about his response in this case.
     /// </summary>
-    public TResponse? Response { get; }
-
+    public object? Response { get; set; }
+    
     public Type ResponseType { get; }
-
+    
     /// <summary>
     /// Specifies the type of the parser that will be used to process the response.
     /// Is loaded when the response model is processed by the interaction service.
@@ -63,11 +60,11 @@ public interface IResponseModel<out TResponse>
     /// If set together with the <see cref="ResponseValidatorType"/>, will be injected
     /// into instantiated <see cref="ResponseValidator"/> during the loading process.
     /// </summary>
-    public IResponseModelConfig<TResponse>? Config { get; }
+    public object? Config { get; }
     
     /// <summary>
     /// If set, will be used to validate the response.
     /// Doesn't need to be set, if <see cref="ResponseValidatorType"/> is set.
     /// </summary>
-    public IResponseValidator<TResponse>? ResponseValidator { get; }
+    public object? ResponseValidator { get; }
 }

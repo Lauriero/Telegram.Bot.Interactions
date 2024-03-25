@@ -18,7 +18,7 @@ namespace Telegram.Bot.Interactions.Validators;
 /// will be of that type, and the config will also be for only that type.
 /// That warranty should be implemented by interaction processor.
 /// </typeparam>
-public interface IResponseValidator<out TResponse>  
+public interface IResponseValidator<in TResponse>  
     where TResponse : IUserResponse
 {
     /// <summary>

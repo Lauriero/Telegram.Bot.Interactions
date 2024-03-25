@@ -11,12 +11,12 @@ public class Interaction : IInteraction
     public uint Id { get; }
 
     /// <inheritdoc />
-    public IReadOnlyList<IResponseModel<IUserResponse>> AvailableResponses { get; }
+    public IReadOnlyList<IResponseModel> AvailableResponses { get; }
 
-    public Interaction(uint id, IList<IResponseModel<IUserResponse>> availableResponses)
+    public Interaction(uint id, IList<IResponseModel> availableResponses)
     {
         Id = id;
         AvailableResponses = 
-            new ReadOnlyCollection<IResponseModel<IUserResponse>>(availableResponses);
+            new ReadOnlyCollection<IResponseModel>(availableResponses);
     }
 }

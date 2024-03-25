@@ -4,6 +4,7 @@ using Telegram.Bot.Interactions.Model.Responses.Implementation.Types;
 using Telegram.Bot.Interactions.Services;
 using Telegram.Bot.Interactions.Tests.Environment.Parsers;
 using Telegram.Bot.Interactions.Tests.Environment.Parsers.Generic;
+using Telegram.Bot.Interactions.Utilities.Collections;
 
 namespace Telegram.Bot.Interactions.Tests.Loading;
 
@@ -17,7 +18,8 @@ public class ParserTests : BaseLoadingTests
         nameof(ValidTextParser),
         nameof(ValidGenericParser),
         nameof(ValidOverrideParser),
-        nameof(ValidTestResponseParser)
+        nameof(ValidTestResponseParser),
+        nameof(ValidDefaultTestResponseParser),
     };
     
     private static readonly string[] _invalidParserNames = {
@@ -53,7 +55,8 @@ public class ParserTests : BaseLoadingTests
         
         // Test registry
         CollectionAssert.IsSubsetOf(_validParserNames,
-            InteractionService.Registry.ResponseParsers[typeof(TextResponse)].Select(p => 
-                p.ParserType.Name));
+            InteractionService.Registry.ResponseParsers.Values
+                .SelectMany(p => p)
+                .Select(p => p.ParserType.Name));
     }
 }

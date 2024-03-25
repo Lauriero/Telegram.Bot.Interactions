@@ -13,17 +13,17 @@ public class InteractionContext<TResponse> : IInteractionContext<TResponse>
     public IInteraction TargetInteraction { get; }
     
     /// <inheritdoc />
-    public IResponseModel<TResponse> ResponseModel { get; }
-   
+    public string ResponseKey { get; }
+
     /// <inheritdoc />
     public TResponse Response { get; }
     
     public InteractionContext(IInteractionService interactionService, 
-        IInteraction targetInteraction, IResponseModel<TResponse> responseModel,
+        IInteraction targetInteraction, string responseKey,
         TResponse response)
     {
         Response           = response;
-        ResponseModel      = responseModel;
+        ResponseKey        = responseKey;
         TargetInteraction  = targetInteraction;
         InteractionService = interactionService;
     }
