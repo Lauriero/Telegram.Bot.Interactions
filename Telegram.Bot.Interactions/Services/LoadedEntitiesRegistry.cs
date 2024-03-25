@@ -10,14 +10,14 @@ namespace Telegram.Bot.Interactions.Services;
 
 public class LoadedEntitiesRegistry : ILoadedEntitiesRegistry
 {
-    public IReadOnlyDictionary<int, InteractionInfo> Interactions { get; }
+    public IReadOnlyDictionary<uint, InteractionInfo> Interactions { get; }
     public IReadOnlyDictionary<Type, InteractionModuleInfo> InteractionModules { get; }
     public IReadOnlyDictionary<Type, DefaultEntityCollection<ResponseParserInfo>> 
         ResponseParsers { get; }
 
     public IReadOnlyDictionary<Type, ResponseValidatorInfo> ResponseValidators { get; }
 
-    private readonly ConcurrentDictionary<int, InteractionInfo> _interactions;
+    private readonly ConcurrentDictionary<uint, InteractionInfo> _interactions;
     private readonly ConcurrentDictionary<Type, InteractionModuleInfo> _interactionModules;
     private readonly ConcurrentDictionary<Type, DefaultEntityCollection<ResponseParserInfo>> _responseParsers;
     private readonly ConcurrentDictionary<Type, ResponseValidatorInfo> _responseValidators;
@@ -26,13 +26,13 @@ public class LoadedEntitiesRegistry : ILoadedEntitiesRegistry
     
     public LoadedEntitiesRegistry()
     {
-        _interactions            = new ConcurrentDictionary<int, InteractionInfo>();
+        _interactions            = new ConcurrentDictionary<uint, InteractionInfo>();
         _interactionModules      = new ConcurrentDictionary<Type, InteractionModuleInfo>();
         _responseValidators      = new ConcurrentDictionary<Type, ResponseValidatorInfo>();
         _responseParsers         = new ConcurrentDictionary<Type, DefaultEntityCollection<ResponseParserInfo>>();
         _responseParsersInternal = new ConcurrentDictionary<Type, List<ResponseParserInfo>>();
         
-        Interactions       = new ReadOnlyDictionary<int, InteractionInfo>(_interactions);
+        Interactions       = new ReadOnlyDictionary<uint, InteractionInfo>(_interactions);
         InteractionModules = new ReadOnlyDictionary<Type, InteractionModuleInfo>(_interactionModules);
         ResponseParsers    = new ReadOnlyDictionary<Type, DefaultEntityCollection<ResponseParserInfo>>(_responseParsers);
         ResponseValidators = new ReadOnlyDictionary<Type, ResponseValidatorInfo>(_responseValidators);

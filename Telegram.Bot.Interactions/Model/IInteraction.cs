@@ -14,7 +14,7 @@ public interface IInteraction
     /// <summary>
     /// Identifies the interaction.
     /// </summary>
-    int Id { get; }
+    uint Id { get; }
 
     /// <summary>
     /// List of the responses that user can give or gave to an interaction.

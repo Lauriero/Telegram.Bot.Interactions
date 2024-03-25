@@ -6,5 +6,9 @@ public enum TestInteraction : int
     I1,
     I2,
     I3,
-    I4
+    I4,
+    
+    V1,
+    V2,
+    V3
 }

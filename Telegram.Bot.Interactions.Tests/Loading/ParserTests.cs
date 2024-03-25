@@ -17,6 +17,7 @@ public class ParserTests : BaseLoadingTests
         nameof(ValidTextParser),
         nameof(ValidGenericParser),
         nameof(ValidOverrideParser),
+        nameof(ValidTestResponseParser)
     };
     
     private static readonly string[] _invalidParserNames = {

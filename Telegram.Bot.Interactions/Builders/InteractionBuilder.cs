@@ -4,14 +4,31 @@ using Telegram.Bot.Interactions.Model.Responses.Abstraction;
 
 namespace Telegram.Bot.Interactions.Builders;
 
+public class InteractionBuilder<TInteractionEnumeration> : InteractionBuilder
+    where TInteractionEnumeration : Enum
+{
+    protected InteractionBuilder(uint id) : base(id)
+    {
+    }
+
+    public static InteractionBuilder WithId(TInteractionEnumeration interaction)
+    {
+        if (!Enum.GetUnderlyingType(typeof(TInteractionEnumeration)).IsAssignableTo(typeof(UInt32))) {
+            throw new ArgumentException("The valid enumeration type should be assignable to UInt32", nameof(interaction));
+        }
+
+        return new InteractionBuilder<TInteractionEnumeration>(Convert.ToUInt32(interaction));
+    }
+}
+
 /// <summary>
 /// Is used to build the instances of the <see cref="Interaction"/>.
 /// </summary>
 public class InteractionBuilder
 {
-    private int _id;
+    private uint _id;
     private readonly List<IResponseModel<IUserResponse>> _responses;
-    private InteractionBuilder(int id)
+    protected InteractionBuilder(uint id)
     {
         _id = id;
         _responses = new List<IResponseModel<IUserResponse>>();
@@ -21,7 +38,7 @@ public class InteractionBuilder
     /// Initializes a new building process with the interaction id.
     /// </summary>
     /// <param name="id">Built interaction id.</param>
-    public static InteractionBuilder WithId(int id)
+    public static InteractionBuilder WithId(uint id)
     {
         return new InteractionBuilder(id);
     }

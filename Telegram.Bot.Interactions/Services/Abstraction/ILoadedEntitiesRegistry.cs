@@ -14,7 +14,7 @@ public interface ILoadedEntitiesRegistry
     /// Contains the list of loaded interactions,
     /// mapped to the interaction id.
     /// </summary>
-    IReadOnlyDictionary<int, InteractionInfo> Interactions { get; }
+    IReadOnlyDictionary<uint, InteractionInfo> Interactions { get; }
     
     /// <summary>
     /// Contains the list of loaded interaction modules,

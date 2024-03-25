@@ -8,12 +8,12 @@ namespace Telegram.Bot.Interactions.Model;
 public class Interaction : IInteraction
 {
     /// <inheritdoc />
-    public int Id { get; }
+    public uint Id { get; }
 
     /// <inheritdoc />
     public IReadOnlyList<IResponseModel<IUserResponse>> AvailableResponses { get; }
 
-    public Interaction(int id, IList<IResponseModel<IUserResponse>> availableResponses)
+    public Interaction(uint id, IList<IResponseModel<IUserResponse>> availableResponses)
     {
         Id = id;
         AvailableResponses = 

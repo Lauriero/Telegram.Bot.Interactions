@@ -8,7 +8,7 @@ namespace Telegram.Bot.Interactions.Model.Descriptors;
 
 public class InteractionHandlerInfo
 {
-    public readonly int InteractionId;
+    public readonly uint InteractionId;
     
     /// <inheritdoc cref="HandlerRunMode"/>
     public readonly HandlerRunMode RunMode;
@@ -45,18 +45,18 @@ public class InteractionHandlerInfo
     /// </summary>
     public bool IsCancellable { get; }
     
-    public InteractionHandlerInfo(int interactionId, HandlerRunMode runMode, 
+    public InteractionHandlerInfo(uint interactionId, HandlerRunMode runMode, 
         MethodInfo methodInfo, InteractionModuleInfo module, 
         bool acceptsSpecificContext = false, bool isAsync = false, bool isCancellable = false, 
         Type? specificContextResponseType = null)
     {
-        Module                           = module;
-        AcceptsSpecificContext           = acceptsSpecificContext;
-        IsAsync                          = isAsync;
-        IsCancellable                    = isCancellable;
+        Module                      = module;
+        IsAsync                     = isAsync;
+        RunMode                     = runMode;
+        MethodInfo                  = methodInfo;
+        IsCancellable               = isCancellable;
+        InteractionId               = interactionId;
+        AcceptsSpecificContext      = acceptsSpecificContext;
         SpecificContextResponseType = specificContextResponseType;
-        RunMode                          = runMode;
-        MethodInfo                       = methodInfo;
-        InteractionId                    = interactionId;
     }
 }

@@ -13,10 +13,10 @@ namespace Telegram.Bot.Interactions.Attributes.Modules;
 [AttributeUsage(AttributeTargets.Method)]
 public class InteractionHandlerAttribute : Attribute
 {
-    public int InteractionId;
+    public uint InteractionId;
     public HandlerRunMode RunMode; 
     
-    public InteractionHandlerAttribute(int interactionId, 
+    public InteractionHandlerAttribute(uint interactionId, 
         HandlerRunMode runMode = HandlerRunMode.Default)
     {
         InteractionId = interactionId;

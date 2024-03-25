@@ -42,19 +42,19 @@ public class BasicTestInteractionModule : IInteractionModule
     {
         return new[] {
             InteractionBuilder
-                .WithId((int)TestInteraction.I1)
+                .WithId((uint)TestInteraction.I1)
                 .WithResponse(BasicResponseModelBuilder<TextResponse>
                     .WithKey(I1_KEY))
                 .Build(),
             InteractionBuilder
-                .WithId((int)TestInteraction.I2)
+                .WithId((uint)TestInteraction.I2)
                 .WithResponse(BasicResponseModelBuilder<ImageResponse>
                     .WithKey(I2_KEY))
                 .WithResponse(BasicResponseModelBuilder<TextResponse>
                     .WithKey(I2_KEY2))
                 .Build(),
             InteractionBuilder
-                .WithId((int)TestInteraction.I3)
+                .WithId((uint)TestInteraction.I3)
                 .WithResponse(BasicResponseModelBuilder<ImageResponse>
                     .WithKey(I3_KEY))
                 .Build(),
@@ -64,7 +64,7 @@ public class BasicTestInteractionModule : IInteractionModule
     /// <summary>
     /// Tests valid handler for not declared interaction.
     /// </summary>
-    [InteractionHandler((int)TestInteraction.NotDefinedI, HandlerRunMode.RunSync)]
+    [InteractionHandler((uint)TestInteraction.NotDefinedI, HandlerRunMode.RunSync)]
     public void NotDefinedInteractionHandler(IInteractionContext<TextResponse> context,
         CancellationToken token = default)
     {
@@ -74,7 +74,7 @@ public class BasicTestInteractionModule : IInteractionModule
     /// <summary>
     /// Tests handler with invalid return type.
     /// </summary>
-    [InteractionHandler((int)TestInteraction.I1, HandlerRunMode.RunSync)]
+    [InteractionHandler((uint)TestInteraction.I1, HandlerRunMode.RunSync)]
     public string InvalidReturnTypeHandler(IInteractionContext<TextResponse> context,
         CancellationToken token = default)
     {
@@ -84,7 +84,7 @@ public class BasicTestInteractionModule : IInteractionModule
     /// <summary>
     /// Tests handler with too many parameters.
     /// </summary>
-    [InteractionHandler((int)TestInteraction.I1, HandlerRunMode.RunSync)]
+    [InteractionHandler((uint)TestInteraction.I1, HandlerRunMode.RunSync)]
     public void InvalidArgumentsTypeHandler1(IInteractionContext<TextResponse> context,
         CancellationToken token = default, string s = "")
     {
@@ -94,7 +94,7 @@ public class BasicTestInteractionModule : IInteractionModule
     /// <summary>
     /// Tests handler with invalid second parameter.
     /// </summary>
-    [InteractionHandler((int)TestInteraction.I1, HandlerRunMode.RunSync)]
+    [InteractionHandler((uint)TestInteraction.I1, HandlerRunMode.RunSync)]
     public void InvalidArgumentsTypeHandler2(IInteractionContext<TextResponse> context,
         string token = "")
     {
@@ -104,7 +104,7 @@ public class BasicTestInteractionModule : IInteractionModule
     /// <summary>
     /// Tests handler with invalid first parameter (not context).
     /// </summary>
-    [InteractionHandler((int)TestInteraction.I1, HandlerRunMode.RunSync)]
+    [InteractionHandler((uint)TestInteraction.I1, HandlerRunMode.RunSync)]
     public void InvalidArgumentsTypeHandler3(List<TextResponse> context,
         CancellationToken token = default)
     {
@@ -114,7 +114,7 @@ public class BasicTestInteractionModule : IInteractionModule
     /// <summary>
     /// Tests handler with invalid first parameter (strong type doesn't match with interaction).
     /// </summary>
-    [InteractionHandler((int)TestInteraction.I1, HandlerRunMode.RunSync)]
+    [InteractionHandler((uint)TestInteraction.I1, HandlerRunMode.RunSync)]
     public void InvalidArgumentsTypeHandler4(IInteractionContext<ImageResponse> context,
         CancellationToken token = default)
     {
@@ -124,7 +124,7 @@ public class BasicTestInteractionModule : IInteractionModule
     /// <summary>
     /// Tests handler with invalid first parameter (strong type used on multiple-type response).
     /// </summary>
-    [InteractionHandler((int)TestInteraction.I2, HandlerRunMode.RunSync)]
+    [InteractionHandler((uint)TestInteraction.I2, HandlerRunMode.RunSync)]
     public void InvalidArgumentsTypeHandler5(IInteractionContext<ImageResponse> context,
         CancellationToken token = default)
     {
