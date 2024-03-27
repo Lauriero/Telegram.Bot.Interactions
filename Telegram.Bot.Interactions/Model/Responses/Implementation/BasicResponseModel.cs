@@ -43,8 +43,35 @@ public class BasicResponseModel<TResponse> : IResponseModel
     public IResponseModelConfig<TResponse>? TypedConfig { get; }
 
     /// <inheritdoc />
-    public object? ResponseValidator => TypedResponseValidator;
-    public IResponseValidator<TResponse>? TypedResponseValidator { get; }
+    public object? ResponseValidator
+    {
+        get => TypedResponseValidator;
+        set => TypedResponseValidator = (IResponseValidator<TResponse>?)value;
+    }
+
+    public IResponseModelConfig<TConfigResponse>? GetConfig<TConfigResponse>()
+        where TConfigResponse : IUserResponse
+    {
+        if (!typeof(TResponse).IsEquivalentTo(typeof(TConfigResponse))) {
+            throw new ArgumentException("Attempt to get a config for the type that is not " +
+                                        "the declared response type for the model");
+        }
+
+        return (IResponseModelConfig<TConfigResponse>?)TypedConfig;
+    }
+
+    public IResponseValidator<TValidatorResponse>? GetValidator<TValidatorResponse>()
+        where TValidatorResponse : IUserResponse
+    {
+        if (!typeof(TResponse).IsEquivalentTo(typeof(TValidatorResponse))) {
+            throw new ArgumentException("Attempt to get a config for the type that is not " +
+                                        "the declared response type for the model");
+        }
+
+        return (IResponseValidator<TValidatorResponse>?)TypedResponseValidator;
+    }
+
+    public IResponseValidator<TResponse>? TypedResponseValidator { get; private set; }
     
     public BasicResponseModel(string key, Type? responseParserType, 
         IResponseValidator<TResponse>? responseValidator)

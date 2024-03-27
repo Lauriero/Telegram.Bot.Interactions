@@ -4,5 +4,10 @@ namespace Telegram.Bot.Interactions.Tests.Environment.Validators.Configs;
 
 public class AbstractConfigImpl : IAbstractConfig<IAbstractResponse>
 {
-    public string TestParameter => "Test";
+    public string TestParameter { get; set; }
+
+    public AbstractConfigImpl(string testParameter)
+    {
+        TestParameter = testParameter;
+    }
 }

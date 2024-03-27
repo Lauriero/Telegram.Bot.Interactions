@@ -5,7 +5,7 @@ using Telegram.Bot.Types;
 
 namespace Telegram.Bot.Interactions.Tests.Environment.Parsers.Generic;
 
-public class ValidGenericParser : IGenericParserBase<TextResponse>
+public class ValidGenericParser : IGenericParser<TextResponse>
 {
     public bool CanParse(Message telegramMessage) { throw new NotImplementedException(); }
 

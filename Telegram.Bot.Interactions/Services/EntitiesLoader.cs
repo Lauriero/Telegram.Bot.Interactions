@@ -108,15 +108,20 @@ public class EntitiesLoader : IEntitiesLoader
                     $"{interaction.Id} - {response.Key}", exception);
             }
             
-            if (response.ResponseValidatorType is not null &&
-                !_entitiesRegistry.ResponseValidators.ContainsKey(response.ResponseValidatorType)) {
-                InteractionLoadingException exception = new InteractionLoadingException(interaction,
-                    $"Interaction contains invalid response with the key {response.Key}, " +
-                    $"that declared {response.ResponseValidatorType} as a validator "      +
-                    $"but this validator has not been registered");
-            
-                return GenericLoadingResult<IInteraction>.FromFailure(
-                    $"{interaction.Id} - {response.Key}", exception);
+            if (response.ResponseValidatorType is not null) {
+                if (!_entitiesRegistry.ResponseValidators.TryGetValue(response.ResponseValidatorType, 
+                        out ResponseValidatorInfo? info)) {
+                    InteractionLoadingException exception = new InteractionLoadingException(interaction,
+                        $"Interaction contains invalid response with the key {response.Key}, " +
+                        $"that declared {response.ResponseValidatorType} as a validator "      +
+                        $"but this validator has not been registered");
+                
+                    
+                    return GenericLoadingResult<IInteraction>.FromFailure(
+                        $"{interaction.Id} - {response.Key}", exception);
+                }
+
+                response.ResponseValidator = info.Instantiate(response.Config);
             }
         }
         

@@ -26,8 +26,10 @@ public interface IResponseValidator<in TResponse>
     /// Is set automatically with a value from <see cref="IResponseModel{TResponse}.Config"/>
     /// after the validator instantiation based on the <see cref="IResponseModel{TResponse}.ResponseValidatorType"/>. 
     /// </summary>
-    public IResponseModelConfig<IUserResponse>? Config { get; set; }
+    public IResponseModelConfig<TResponse>? Config { get; }
 
+    public void SetConfig(object config);
+    
     /// <summary>
     /// Validates the response returning the validation result.
     /// Uses configuration that has been set up in the

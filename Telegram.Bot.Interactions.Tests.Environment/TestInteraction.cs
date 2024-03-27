@@ -1,6 +1,6 @@
 ﻿namespace Telegram.Bot.Interactions.Tests.Environment;
 
-public enum TestInteraction : int
+public enum TestInteraction : uint
 {
     NotDefinedI,
     I1,

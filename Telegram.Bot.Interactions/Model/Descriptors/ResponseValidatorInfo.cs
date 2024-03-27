@@ -68,4 +68,18 @@ public class ResponseValidatorInfo
         return new ResponseValidatorInfo(validatorType, responseType, false, 
             availableConfigTypes, null);
     }
+
+    public object Instantiate(object? config)
+    {
+        object validator = RegisteredInTheSP 
+            ? ServiceProvider.GetService(ValidatorType)! 
+            : Activator.CreateInstance(ValidatorType)!;
+
+        if (config is not null) {
+            validator.GetType().GetMethod(nameof(IResponseValidator<IUserResponse>.SetConfig))!
+                .Invoke(validator, new [] {config});
+        }
+        
+        return validator;
+    }
 }

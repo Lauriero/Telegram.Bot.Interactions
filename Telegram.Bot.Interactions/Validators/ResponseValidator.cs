@@ -10,11 +10,18 @@ namespace Telegram.Bot.Interactions.Validators;
 public abstract class ResponseValidator<TResponse> : IResponseValidator<TResponse>
     where TResponse : IUserResponse
 {
+    private IResponseModelConfig<TResponse>? _config;
+
     /// <inheritdoc cref="ValidateResponseAsync"/>
     public abstract ValueTask<bool> ValidateAsync(TResponse response);
-    
 
-    public IResponseModelConfig<IUserResponse>? Config { get; set; }
+    public IResponseModelConfig<TResponse>? Config => _config;
+
+    public void SetConfig(object config)
+    {
+        // TODO: Add TParams validation
+        _config = (IResponseModelConfig<TResponse>)config;
+    }
 
     public ValueTask<bool> ValidateResponseAsync(IUserResponse response)
     {

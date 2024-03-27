@@ -19,4 +19,7 @@ public class Interaction : IInteraction
         AvailableResponses = 
             new ReadOnlyCollection<IResponseModel>(availableResponses);
     }
-}
+
+    public IResponseModel? GetResponse(string key) => 
+        AvailableResponses.FirstOrDefault(r => r.Key == key);
+}   

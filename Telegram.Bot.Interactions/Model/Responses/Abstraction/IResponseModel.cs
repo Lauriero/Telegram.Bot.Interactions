@@ -66,5 +66,11 @@ public interface IResponseModel
     /// If set, will be used to validate the response.
     /// Doesn't need to be set, if <see cref="ResponseValidatorType"/> is set.
     /// </summary>
-    public object? ResponseValidator { get; }
+    public object? ResponseValidator { get; set; }
+
+    public IResponseModelConfig<TResponse>? GetConfig<TResponse>()
+        where TResponse : IUserResponse;
+    
+    public IResponseValidator<TResponse>? GetValidator<TResponse>()
+        where TResponse : IUserResponse;
 }
